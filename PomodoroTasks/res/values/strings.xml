@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Pomodoro Tasks</string>
+    <string name="no_notes">No Tasks Yet</string>
+    <string name="menu_insert">Add Task</string>
+    <string name="menu_delete">Delete Task</string>
+    <string name="title">Title</string>
+    <string name="body">Body</string>
+    <string name="confirm">Save</string>
+    <string name="edit_note">Edit Task</string>
+    <string name="custom_title_left"></string>
+    <string name="custom_title_left_button">Add</string>
+</resources>
