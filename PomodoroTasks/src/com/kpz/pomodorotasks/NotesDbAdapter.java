@@ -36,11 +36,13 @@ import android.util.Log;
  */
 public class NotesDbAdapter {
 
+	private static final String TAG = "PomodoroTasks";
+	
     public static final String KEY_TITLE = "title";
     public static final String KEY_BODY = "body";
+    public static final String KEY_SEQUENCE = "sequence";
     public static final String KEY_ROWID = "_id";
 
-    private static final String TAG = "NotesDbAdapter";
     private DatabaseHelper mDbHelper;
     private SQLiteDatabase mDb;
     
@@ -48,8 +50,10 @@ public class NotesDbAdapter {
      * Database creation sql statement
      */
     private static final String DATABASE_CREATE =
-            "create table notes (_id integer primary key autoincrement, "
-                    + "title text not null, body text not null);";
+            "create table notes (_id integer primary key autoincrement"
+    				+ ", sequence integer"
+    				+ ", title text not null" 
+                    + ", body text not null);";
 
     private static final String DATABASE_NAME = "data";
     private static final String DATABASE_TABLE = "notes";
@@ -122,7 +126,12 @@ public class NotesDbAdapter {
         initialValues.put(KEY_TITLE, title);
         initialValues.put(KEY_BODY, body);
 
-        return mDb.insert(DATABASE_TABLE, null, initialValues);
+        long noteId = mDb.insert(DATABASE_TABLE, null, initialValues);
+        ContentValues args = new ContentValues();
+        args.put(KEY_SEQUENCE, noteId);
+        mDb.update(DATABASE_TABLE, args, KEY_ROWID + "=" + noteId, null);
+        
+		return noteId;
     }
 
     /**
@@ -144,7 +153,7 @@ public class NotesDbAdapter {
     public Cursor fetchAllNotes() {
 
         return mDb.query(DATABASE_TABLE, new String[] {KEY_ROWID, KEY_TITLE,
-                KEY_BODY}, null, null, null, null, null);
+                KEY_BODY, KEY_SEQUENCE}, null, null, null, null, "sequence");
     }
 
     /**
@@ -185,4 +194,61 @@ public class NotesDbAdapter {
 
         return mDb.update(DATABASE_TABLE, args, KEY_ROWID + "=" + rowId, null) > 0;
     }
+
+	public void move(String fromRowIdStr, String fromSeqStr, String toRowIdStr,
+			String toSeqStr) {
+
+		int fromSeq = Integer.parseInt(fromSeqStr);
+		int toSeq = Integer.parseInt(toSeqStr);
+		int fromRowId = Integer.parseInt(fromRowIdStr);
+		int toRowId = Integer.parseInt(toRowIdStr);
+		
+		if(fromSeq < toSeq){
+			
+			ContentValues args = new ContentValues();
+	        args.put(KEY_SEQUENCE, toSeq);
+	        Log.d(TAG, fromSeq + " -> " + toSeq);
+	        mDb.update(DATABASE_TABLE, args, KEY_SEQUENCE + "=" + fromSeq, null);
+	        
+	        
+	        for (int i = 0; i <  toSeq - fromSeq - 1; i++) {
+	        	
+	            int fromSeq1 = fromSeq + i + 1;
+	            int toSeq1 = fromSeq1 + 1;
+	            Log.d(TAG, fromSeq1 + " -> " + toSeq1);			
+	        	args = new ContentValues();
+	        	args.put(KEY_SEQUENCE, toSeq1);
+				mDb.update(DATABASE_TABLE, args, KEY_SEQUENCE + "=" + fromSeq1, null);	
+			}
+	        
+	        Log.d(TAG, "(Row:"+ toRowId + ") -> " + (toSeq - 1));			
+	        args = new ContentValues();
+	    	args.put(KEY_SEQUENCE, toSeq - 1);
+			mDb.update(DATABASE_TABLE, args, KEY_ROWID + "=" + toRowId, null);
+			
+		} else {
+		
+	        ContentValues args = new ContentValues();
+	        args.put(KEY_SEQUENCE, toSeq);
+	        Log.d(TAG, fromSeq + " -> " + toSeq);
+	        mDb.update(DATABASE_TABLE, args, KEY_SEQUENCE + "=" + fromSeq, null);
+	        
+	        
+	        for (int i = 0; i < fromSeq - toSeq - 1; i++) {
+	        	
+	            int fromSeq1 = fromSeq - i - 1;
+	            int toSeq1 = fromSeq - i;
+	            Log.d(TAG, fromSeq1 + " -> " + toSeq1);			
+	        	args = new ContentValues();
+	        	args.put(KEY_SEQUENCE, toSeq1);
+				mDb.update(DATABASE_TABLE, args, KEY_SEQUENCE + "=" + fromSeq1, null);	
+			}
+	        
+	        Log.d(TAG, "(Row:"+ toRowId + ") -> " + (toSeq + 1));			
+	        args = new ContentValues();
+	    	args.put(KEY_SEQUENCE, toSeq + 1);
+			mDb.update(DATABASE_TABLE, args, KEY_ROWID + "=" + toRowId, null);
+		
+		}
+	}
 }
