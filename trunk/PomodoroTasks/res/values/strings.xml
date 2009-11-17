@@ -10,4 +10,7 @@
     <string name="edit_note">Edit Task</string>
     <string name="custom_title_left"></string>
     <string name="custom_title_left_button">Add</string>
+    
+    <!-- Do not translate. Background color for currently dragged item in playlist edit mode. -->
+    <color name="dragndrop_background">#e0103010</color>
 </resources>
