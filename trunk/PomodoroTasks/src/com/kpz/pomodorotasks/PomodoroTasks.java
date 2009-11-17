@@ -1,5 +1,7 @@
 package com.kpz.pomodorotasks;
 
+import java.util.Arrays;
+
 import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
@@ -45,40 +47,20 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //setTheme(android.R.style.Theme_Light);
-        
-//        requestWindowFeature(Window.FEATURE_CUSTOM_TITLE);
-//        getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE, R.layout.notes_list);
-        
         setContentView(R.layout.notes_list);
         
-        Log.d(TAG, "before caling getListView()");
-
         mTrackList = getListView();
         mTrackList.setOnCreateContextMenuListener(this);
         
         Log.d(TAG, "list type: " + mTrackList.getClass());
-//        if (mEditMode) {
-            ((TouchInterceptor) mTrackList).setDropListener(mDropListener);
-            //((TouchInterceptor) mTrackList).setRemoveListener(mRemoveListener);
-            mTrackList.setCacheColorHint(0);
-//        } else {
-//            mTrackList.setTextFilterEnabled(true);
-//        }
-        
-        //getListView().setBackgroundColor(Color.BLUE);
-        //getListView().setDividerHeight(4);
+        ((TouchInterceptor) mTrackList).setDropListener(mDropListener);
+        //((TouchInterceptor) mTrackList).setRemoveListener(mRemoveListener);
+        mTrackList.setCacheColorHint(0);
         
         final EditText leftTextEdit = (EditText) findViewById(R.id.left_text_edit);
         
         Button leftButton = (Button) findViewById(R.id.left_text_button);
 
-//        leftTextEdit.setWidth(getParent().getWindowManager().getDefaultDisplay().getWidth() - leftButton.getWidth());
-  
-//        Log.d(TAG,"getParent().getWindowManager().getDefaultDisplay().getWidth():" + getParent().getWindowManager().getDefaultDisplay().getWidth());
-        //Log.d(TAG,"leftButton.getWidth()" + leftButton.getWidth());
-
-        
         leftButton.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
  
@@ -101,77 +83,18 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
             }
         });
         
-        
-        Log.d(TAG,"leftButton:" + leftButton);
-
         mDbHelper = new NotesDbAdapter(this);
         mDbHelper.open();
-        
         
         fillData();
         
         registerForContextMenu(getListView());
     }
     
-    private TouchInterceptor.DropListener mDropListener =
-        new TouchInterceptor.DropListener() {
-        public void drop(int from, int to) {
-        	
-        	Log.d(TAG, "inside DropListener.drop method");
-        	
-//            if (mTrackCursor instanceof NowPlayingCursor) {
-//                // update the currently playing list
-//                NowPlayingCursor c = (NowPlayingCursor) mTrackCursor;
-//                c.moveItem(from, to);
-//                ((TrackListAdapter)getListAdapter()).notifyDataSetChanged();
-//                getListView().invalidateViews();
-//                mDeletedOneRow = true;
-//            } else {
-//                // update a saved playlist
-//                Uri baseUri = MediaStore.Audio.Playlists.Members.getContentUri("external",
-//                        Long.valueOf(mPlaylist));
-//                ContentValues values = new ContentValues();
-//                String where = MediaStore.Audio.Playlists.Members._ID + "=?";
-//                String [] wherearg = new String[1];
-//                ContentResolver res = getContentResolver();
-//                
-//                int colidx = mTrackCursor.getColumnIndexOrThrow(
-//                        MediaStore.Audio.Playlists.Members.PLAY_ORDER);
-//                if (from < to) {
-//                    // move the item to somewhere later in the list
-//                    mTrackCursor.moveToPosition(to);
-//                    long toidx = mTrackCursor.getLong(colidx);
-//                    mTrackCursor.moveToPosition(from);
-//                    values.put(MediaStore.Audio.Playlists.Members.PLAY_ORDER, toidx);
-//                    wherearg[0] = mTrackCursor.getString(0);
-//                    res.update(baseUri, values, where, wherearg);
-//                    for (int i = from + 1; i <= to; i++) {
-//                        mTrackCursor.moveToPosition(i);
-//                        values.put(MediaStore.Audio.Playlists.Members.PLAY_ORDER, i - 1);
-//                        wherearg[0] = mTrackCursor.getString(0);
-//                        res.update(baseUri, values, where, wherearg);
-//                    }
-//                } else if (from > to) {
-//                    // move the item to somewhere earlier in the list
-//                    mTrackCursor.moveToPosition(to);
-//                    long toidx = mTrackCursor.getLong(colidx);
-//                    mTrackCursor.moveToPosition(from);
-//                    values.put(MediaStore.Audio.Playlists.Members.PLAY_ORDER, toidx);
-//                    wherearg[0] = mTrackCursor.getString(0);
-//                    res.update(baseUri, values, where, wherearg);
-//                    for (int i = from - 1; i >= to; i--) {
-//                        mTrackCursor.moveToPosition(i);
-//                        values.put(MediaStore.Audio.Playlists.Members.PLAY_ORDER, i + 1);
-//                        wherearg[0] = mTrackCursor.getString(0);
-//                        res.update(baseUri, values, where, wherearg);
-//                    }
-//                }
-//            }
-        }
-    };
-
-    
     private void fillData() {
+    	
+    	Log.d(TAG, "inside fillData");
+
         // Get all of the rows from the database and create the item list
     	Cursor notesCursor = mDbHelper.fetchAllNotes();
         startManagingCursor(notesCursor);
@@ -188,7 +111,6 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
         
         TrackListAdapter notes = new TrackListAdapter(this, getApplication(), R.layout.notes_row, notesCursor, from, to);
 
-        
         setListAdapter(notes);
     }
     
@@ -249,12 +171,6 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
         fillData();
     }
     
-    @Override
-    public View onCreateView(String name, Context context, AttributeSet attrs) {
-    	// TODO Auto-generated method stub
-    	return super.onCreateView(name, context, attrs);
-    }
-
     static class TrackListAdapter extends SimpleCursorAdapter implements SectionIndexer {
 
     	private final StringBuilder mBuilder = new StringBuilder();
@@ -286,52 +202,13 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
             mActivity = newactivity;
         }
 
-//        @Override
-//        public View getView(int position, View convertView, ViewGroup parent) {
-//
-//        	
-//        	
-//            // A ViewHolder keeps references to children views to avoid unneccessary calls
-//            // to findViewById() on each row.
-//            ViewHolder holder;
-//
-//            // When convertView is not null, we can reuse it directly, there is no need
-//            // to reinflate it. We only inflate a new View when the convertView supplied
-//            // by ListView is null.
-//            if (convertView == null) {
-//                convertView = mInflater.inflate(R.layout.list_item_icon_text, null);
-//
-//                // Creates a ViewHolder and store references to the two children views
-//                // we want to bind data to.
-//                holder = new ViewHolder();
-//                holder.text = (TextView) convertView.findViewById(R.id.text);
-//                holder.icon = (ImageView) convertView.findViewById(R.id.icon);
-//
-//                convertView.setTag(holder);
-//            } else {
-//                // Get the ViewHolder back to get fast access to the TextView
-//                // and the ImageView.
-//                holder = (ViewHolder) convertView.getTag();
-//            }
-//
-//            // Bind the data efficiently with the holder.
-//            holder.text.setText(DATA[position]);
-//            holder.icon.setImageBitmap((position & 1) == 1 ? mIcon1 : mIcon2);
-//
-//            return convertView;
-//        
-//        }
-
         @Override
         public View newView(Context context, Cursor cursor, ViewGroup parent) {
             View v = super.newView(context, cursor, parent);
             ImageView iv = (ImageView) v.findViewById(R.id.icon);
-//            if (mActivity.mEditMode) {
-                iv.setVisibility(View.VISIBLE);
-                iv.setImageResource(R.drawable.ic_mp_move);
-//            } else {
-//                iv.setVisibility(View.GONE);
-//            }
+            iv.setVisibility(View.VISIBLE);
+            iv.setImageResource(R.drawable.ic_mp_move);
+//            iv.setVisibility(View.GONE);
             
 //            ViewHolder vh = new ViewHolder();
 //            vh.line1 = (TextView) v.findViewById(R.id.line1);
@@ -342,55 +219,6 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
 //            vh.buffer2 = new char[200];
 //            v.setTag(vh);
             return v;
-        }
-
-        @Override
-        public void bindView(View view, Context context, Cursor cursor) {
-            
-        	super.bindView(view, context, cursor);
-        	
-//            ViewHolder vh = (ViewHolder) view.getTag();
-//            
-//            cursor.copyStringToBuffer(mTitleIdx, vh.buffer1);
-//            vh.line1.setText(vh.buffer1.data, 0, vh.buffer1.sizeCopied);
-//            
-//            int secs = cursor.getInt(mDurationIdx) / 1000;
-//            if (secs == 0) {
-//                vh.duration.setText("");
-//            } else {
-//                vh.duration.setText(MusicUtils.makeTimeString(context, secs));
-//            }
-//            
-//            final StringBuilder builder = mBuilder;
-//            builder.delete(0, builder.length());
-//
-//            String name = cursor.getString(mArtistIdx);
-//            if (name == null || name.equals(MediaFile.UNKNOWN_STRING)) {
-//                builder.append(mUnknownArtist);
-//            } else {
-//                builder.append(name);
-//            }
-//            int len = builder.length();
-//            if (vh.buffer2.length < len) {
-//                vh.buffer2 = new char[len];
-//            }
-//            builder.getChars(0, len, vh.buffer2, 0);
-//            vh.line2.setText(vh.buffer2, 0, len);
-//
-//            ImageView iv = vh.play_indicator;
-//            long id = -1;
-//            if (MusicUtils.sService != null) {
-//                // TODO: IPC call on each bind??
-//                try {
-//                    if (mIsNowPlaying) {
-//                        id = MusicUtils.sService.getQueuePosition();
-//                    } else {
-//                        id = MusicUtils.sService.getAudioId();
-//                    }
-//                } catch (RemoteException ex) {
-//                }
-//            }
-            
         }
         
         @Override
@@ -438,4 +266,31 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
             return 0;
         }        
     }
+    
+    private TouchInterceptor.DropListener mDropListener =
+        new TouchInterceptor.DropListener() {
+        public void drop(int from, int to) {
+        	
+        	Log.d(TAG, "from: " + from + " to:" + to);
+        	
+        	Cursor cursor = (Cursor)getListAdapter().getItem(from);
+        	String fromSeq = cursor.getString(cursor.getColumnIndex(NotesDbAdapter.KEY_SEQUENCE));
+        	String fromRowId = cursor.getString(cursor.getColumnIndex(NotesDbAdapter.KEY_ROWID));
+        	String fromTitle = cursor.getString(cursor.getColumnIndex(NotesDbAdapter.KEY_TITLE));
+        	
+        	cursor = (Cursor)getListAdapter().getItem(to);
+        	String toSeq = cursor.getString(cursor.getColumnIndex(NotesDbAdapter.KEY_SEQUENCE));
+        	String toRowId = cursor.getString(cursor.getColumnIndex(NotesDbAdapter.KEY_ROWID));
+        	String toTitle = cursor.getString(cursor.getColumnIndex(NotesDbAdapter.KEY_TITLE));
+        	
+        	Log.d(TAG, fromSeq + fromRowId + fromTitle);
+        	Log.d(TAG, toSeq + toRowId + toTitle);
+        	
+        	mDbHelper.move(fromRowId, fromSeq, toRowId, toSeq);
+        	
+        	fillData();
+        	
+        	getListView().setSelection(Integer.parseInt(toSeq));
+        }
+    };
 }

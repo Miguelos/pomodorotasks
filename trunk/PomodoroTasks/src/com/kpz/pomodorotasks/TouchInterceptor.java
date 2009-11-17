@@ -67,17 +67,10 @@ public class TouchInterceptor extends ListView {
         Log.d("PomodoroTasks", "init TouchInterceptor");
         
         mContext = context;
-        Log.d("PomodoroTasks", "init TouchInterceptor 2");
         mTouchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
-        Log.d("PomodoroTasks", "init TouchInterceptor 3");
         Resources res = getResources();
-        Log.d("PomodoroTasks", "init TouchInterceptor 4");
         mItemHeightNormal = res.getDimensionPixelSize(R.dimen.normal_height);
-        //mItemHeightNormal = res.getDimensionPixelSize(64);
-        Log.d("PomodoroTasks", "init TouchInterceptor 5");
         mItemHeightExpanded = res.getDimensionPixelSize(R.dimen.expanded_height);
-        //mItemHeightExpanded = res.getDimensionPixelSize(128);
-        Log.d("PomodoroTasks", "init TouchInterceptor 6");
     }
     
     @Override
