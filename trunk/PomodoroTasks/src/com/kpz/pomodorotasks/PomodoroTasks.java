@@ -52,7 +52,6 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
         mTrackList = getListView();
         mTrackList.setOnCreateContextMenuListener(this);
         
-        Log.d(TAG, "list type: " + mTrackList.getClass());
         ((TouchInterceptor) mTrackList).setDropListener(mDropListener);
         //((TouchInterceptor) mTrackList).setRemoveListener(mRemoveListener);
         mTrackList.setCacheColorHint(0);
@@ -64,13 +63,9 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
         leftButton.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
  
-                Log.d(TAG,"in listener");
-
             	String title = leftTextEdit.getText().toString();
             	long id = mDbHelper.createNote(title, "");
             	
-                Log.d(TAG,"new id:" + id);
-
                 leftTextEdit.setText(R.string.custom_title_left);
                 
                 fillData();
@@ -93,8 +88,6 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
     
     private void fillData() {
     	
-    	Log.d(TAG, "inside fillData");
-
         // Get all of the rows from the database and create the item list
     	Cursor notesCursor = mDbHelper.fetchAllNotes();
         startManagingCursor(notesCursor);
@@ -110,7 +103,7 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
 //        	    new SimpleCursorAdapter(this, R.layout.notes_row, notesCursor, from, to);
         
         TrackListAdapter notes = new TrackListAdapter(this, getApplication(), R.layout.notes_row, notesCursor, from, to);
-
+        
         setListAdapter(notes);
     }
     
@@ -271,8 +264,6 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
         new TouchInterceptor.DropListener() {
         public void drop(int from, int to) {
         	
-        	Log.d(TAG, "from: " + from + " to:" + to);
-        	
         	Cursor cursor = (Cursor)getListAdapter().getItem(from);
         	String fromSeq = cursor.getString(cursor.getColumnIndex(NotesDbAdapter.KEY_SEQUENCE));
         	String fromRowId = cursor.getString(cursor.getColumnIndex(NotesDbAdapter.KEY_ROWID));
@@ -290,7 +281,12 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
         	
         	fillData();
         	
-        	getListView().setSelection(Integer.parseInt(toSeq));
+        	if (to <= 5){
+        		getListView().setSelection(0);        		
+        	} else {
+        		getListView().setSelection(to - 4);
+        	}
+        	
         }
     };
 }

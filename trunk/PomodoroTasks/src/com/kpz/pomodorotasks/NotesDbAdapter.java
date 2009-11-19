@@ -198,30 +198,32 @@ public class NotesDbAdapter {
 	public void move(String fromRowIdStr, String fromSeqStr, String toRowIdStr,
 			String toSeqStr) {
 
+		
 		int fromSeq = Integer.parseInt(fromSeqStr);
 		int toSeq = Integer.parseInt(toSeqStr);
 		int fromRowId = Integer.parseInt(fromRowIdStr);
 		int toRowId = Integer.parseInt(toRowIdStr);
+
+		if (fromSeq == toSeq){
+			return;
+		}
 		
 		if(fromSeq < toSeq){
 			
 			ContentValues args = new ContentValues();
 	        args.put(KEY_SEQUENCE, toSeq);
-	        Log.d(TAG, fromSeq + " -> " + toSeq);
 	        mDb.update(DATABASE_TABLE, args, KEY_SEQUENCE + "=" + fromSeq, null);
 	        
 	        
 	        for (int i = 0; i <  toSeq - fromSeq - 1; i++) {
 	        	
 	            int fromSeq1 = fromSeq + i + 1;
-	            int toSeq1 = fromSeq1 + 1;
-	            Log.d(TAG, fromSeq1 + " -> " + toSeq1);			
+	            int toSeq1 = fromSeq1 - 1;
 	        	args = new ContentValues();
 	        	args.put(KEY_SEQUENCE, toSeq1);
 				mDb.update(DATABASE_TABLE, args, KEY_SEQUENCE + "=" + fromSeq1, null);	
 			}
 	        
-	        Log.d(TAG, "(Row:"+ toRowId + ") -> " + (toSeq - 1));			
 	        args = new ContentValues();
 	    	args.put(KEY_SEQUENCE, toSeq - 1);
 			mDb.update(DATABASE_TABLE, args, KEY_ROWID + "=" + toRowId, null);
@@ -230,7 +232,6 @@ public class NotesDbAdapter {
 		
 	        ContentValues args = new ContentValues();
 	        args.put(KEY_SEQUENCE, toSeq);
-	        Log.d(TAG, fromSeq + " -> " + toSeq);
 	        mDb.update(DATABASE_TABLE, args, KEY_SEQUENCE + "=" + fromSeq, null);
 	        
 	        
@@ -238,13 +239,11 @@ public class NotesDbAdapter {
 	        	
 	            int fromSeq1 = fromSeq - i - 1;
 	            int toSeq1 = fromSeq - i;
-	            Log.d(TAG, fromSeq1 + " -> " + toSeq1);			
 	        	args = new ContentValues();
 	        	args.put(KEY_SEQUENCE, toSeq1);
 				mDb.update(DATABASE_TABLE, args, KEY_SEQUENCE + "=" + fromSeq1, null);	
 			}
 	        
-	        Log.d(TAG, "(Row:"+ toRowId + ") -> " + (toSeq + 1));			
 	        args = new ContentValues();
 	    	args.put(KEY_SEQUENCE, toSeq + 1);
 			mDb.update(DATABASE_TABLE, args, KEY_ROWID + "=" + toRowId, null);

@@ -9,6 +9,25 @@
     android:layout_height="fill_parent"
     android:orientation="vertical">
     
+    <com.kpz.pomodorotasks.TouchInterceptor
+        android:id="@android:id/list"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textSize="18sp"
+        android:drawSelectorOnTop="false"
+        android:fastScrollEnabled="true" /> 
+
+    <!-- <ListView android:id="@+id/android:list"
+          android:layout_width="wrap_content"
+        	android:layout_height="wrap_content"
+        	android:paddingTop="10px"
+        	style="@style/CustomListTheme"/> -->
+  	<TextView android:id="@+id/android:empty"
+          android:layout_width="wrap_content"
+        	android:layout_height="wrap_content"
+        	android:text="No Tasks!"/>
+
     <LinearLayout android:layout_width="fill_parent" 
         android:layout_height="wrap_content"
         android:baselineAligned="false">
@@ -25,22 +44,5 @@
             android:layout_gravity="center_vertical"
             android:text="@string/custom_title_left_button"/>
     </LinearLayout>
-        
-    <com.kpz.pomodorotasks.TouchInterceptor
-        android:id="@android:id/list"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:textSize="18sp"
-        android:drawSelectorOnTop="false"
-        android:fastScrollEnabled="true" /> 
-
-    <!-- <ListView android:id="@+id/android:list"
-          android:layout_width="wrap_content"
-        	android:layout_height="wrap_content"
-        	android:paddingTop="10px"
-        	style="@style/CustomListTheme"/> -->
-  	<TextView android:id="@+id/android:empty"
-          android:layout_width="wrap_content"
-        	android:layout_height="wrap_content"
-        	android:text="No Tasks!"/>
+        	
 </LinearLayout>
