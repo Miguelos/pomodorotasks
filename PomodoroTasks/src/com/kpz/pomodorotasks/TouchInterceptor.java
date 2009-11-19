@@ -37,7 +37,8 @@ import android.widget.ListView;
 
 public class TouchInterceptor extends ListView {
     
-    private ImageView mDragView;
+    private static final String TAG = "PomodoroTasks";
+	private ImageView mDragView;
     private WindowManager mWindowManager;
     private WindowManager.LayoutParams mWindowParams;
     private int mDragPos;      // which item is being dragged
@@ -63,8 +64,6 @@ public class TouchInterceptor extends ListView {
 
     public TouchInterceptor(Context context, AttributeSet attrs) {
         super(context, attrs);
-        
-        Log.d("PomodoroTasks", "init TouchInterceptor");
         
         mContext = context;
         mTouchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
@@ -112,9 +111,7 @@ public class TouchInterceptor extends ListView {
                     ViewGroup item = (ViewGroup) getChildAt(itemnum - getFirstVisiblePosition());
                     mDragPoint = y - item.getTop();
                     mCoordOffset = ((int)ev.getRawY()) - y;
-                    Log.d("PomodoroTasks", "before caling item.findViewById(R.id.icon)");
                     View dragger = item.findViewById(R.id.icon);
-                    Log.d("PomodoroTasks", "dragger:" + dragger);
 
                     Rect r = mTempRect;
                     dragger.getDrawingRect(r);
@@ -224,34 +221,61 @@ public class TouchInterceptor extends ListView {
         if (mDragPos > mFirstDragPos) {
             childnum++;
         }
+        
+        int total = getCount();
 
         View first = getChildAt(mFirstDragPos - getFirstVisiblePosition());
-
+        
         for (int i = 0;; i++) {
+        	boolean isLastItem = false;
+        	
             View vv = getChildAt(i);
             if (vv == null) {
                 break;
             }
             int height = mItemHeightNormal;
             int visibility = View.VISIBLE;
+            
             if (vv.equals(first)) {
                 // processing the item that is being dragged
                 if (mDragPos == mFirstDragPos) {
                     // hovering over the original location
-                    visibility = View.INVISIBLE;
+                     visibility = View.INVISIBLE;
                 } else {
                     // not hovering over it
+                	//visibility = View.INVISIBLE; // kavan testing
                     height = 1;
                 }
             } else if (i == childnum) {
-                if (mDragPos < getCount() - 1) {
-                    height = mItemHeightExpanded;
-                }
-            }
+            	
+            	if (i == 6 && getLastVisiblePosition() == total - 1){
+            		
+            		isLastItem = true;
+            		
+            	} else {
+            	
+	                if (mDragPos < getCount() - 1) {
+	                    height = mItemHeightExpanded;
+	                    //vv.setPadding(0, 0, 0, 20);
+	                }
+            	}
+            }	
+//            } else if (i == 5 && childnum == 6 && vv.getLayoutParams().height == mItemHeightExpanded && getLastVisiblePosition() - getFirstVisiblePosition() == 5 && getLastVisiblePosition() == total - 1){
+//            	
+//            	Log.d(TAG, "else if - at last node... " + "count:" + total + ">>>>>>>>>>>>>>>>>>>>>>>>>> Item:"+ i + " Height Expanded mDragPos:" + mDragPos);
+//            	isLastItem = true;
+//            }
             ViewGroup.LayoutParams params = vv.getLayoutParams();
             params.height = height;
+            if (isLastItem){
+            	//height = mItemHeightExpanded;
+            //    vv.setPadding(vv.getPaddingLeft(), vv.getPaddingTop(), vv.getPaddingRight(), vv.getPaddingBottom() + 40);
+            }
             vv.setLayoutParams(params);
             vv.setVisibility(visibility);
+            if (isLastItem){
+            	//setSelection(getCount()-1);
+            }
         }
     }
     
@@ -293,6 +317,7 @@ public class TouchInterceptor extends ListView {
                                 mDragListener.drag(mDragPos, itemnum);
                             }
                             mDragPos = itemnum;
+                            
                             doExpansion();
                         }
                         int speed = 0;
