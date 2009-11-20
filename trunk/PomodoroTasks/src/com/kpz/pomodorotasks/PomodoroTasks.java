@@ -1,14 +1,11 @@
 package com.kpz.pomodorotasks;
 
-import java.util.Arrays;
-
 import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.CharArrayBuffer;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.util.AttributeSet;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
@@ -31,9 +28,10 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 
 public class PomodoroTasks extends ListActivity implements View.OnCreateContextMenuListener {
     
+
 	private static final String TAG = "PomodoroTasks";
 	
-	private ListView mTrackList;
+	private static final int TOTAL_TASKS_IN_VIEW = 6;
 	
 	private static final int ACTIVITY_CREATE=0;
     private static final int ACTIVITY_EDIT=1;
@@ -41,68 +39,72 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
     private static final int INSERT_ID = Menu.FIRST;
     private static final int DELETE_ID = Menu.FIRST + 1;
 
-    private NotesDbAdapter mDbHelper;
+    private ListView mTrackList;
+    private TaskDatabaseAdapter mTasksDatabaseHelper;
     
-    /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
         setContentView(R.layout.notes_list);
-        
-        mTrackList = getListView();
-        mTrackList.setOnCreateContextMenuListener(this);
-        
-        ((TouchInterceptor) mTrackList).setDropListener(mDropListener);
-        //((TouchInterceptor) mTrackList).setRemoveListener(mRemoveListener);
-        mTrackList.setCacheColorHint(0);
-        
-        final EditText leftTextEdit = (EditText) findViewById(R.id.left_text_edit);
-        
-        Button leftButton = (Button) findViewById(R.id.left_text_button);
+        initDatabaseHelper();        
+        initTasksList();
+        initAddTaskInput();
+        registerForContextMenu(getListView());
+    }
 
+	private void initTasksList() {
+		initTasksListViewContainer();
+        populateTasksList();
+	}
+
+	private void initTasksListViewContainer() {
+		mTrackList = getListView();
+        mTrackList.setOnCreateContextMenuListener(this);
+        ((TouchInterceptor) mTrackList).setDropListener(mDropListener);
+        mTrackList.setCacheColorHint(0);
+	}
+
+	private void initDatabaseHelper() {
+		mTasksDatabaseHelper = new TaskDatabaseAdapter(this);
+        mTasksDatabaseHelper.open();
+	}
+
+	private void initAddTaskInput() {
+		final EditText leftTextEdit = (EditText) findViewById(R.id.left_text_edit);
+        Button leftButton = (Button) findViewById(R.id.left_text_button);
         leftButton.setOnClickListener(new OnClickListener() {
-            public void onClick(View v) {
+            
+        	public void onClick(View v) {
  
             	String title = leftTextEdit.getText().toString();
-            	long id = mDbHelper.createNote(title, "");
+            	mTasksDatabaseHelper.createNote(title, "");
             	
                 leftTextEdit.setText(R.string.custom_title_left);
                 
-                fillData();
+                populateTasksList();
                 getListView().requestFocus();
-                ((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE))  
-                .hideSoftInputFromWindow(leftTextEdit.getWindowToken(), 0); 
-                
+                ((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(leftTextEdit.getWindowToken(), 0); 
+
+// to display on-screen keyboard                 
 //                ((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE))  
 //                .showSoftInput(editText, 0);  
             }
         });
-        
-        mDbHelper = new NotesDbAdapter(this);
-        mDbHelper.open();
-        
-        fillData();
-        
-        registerForContextMenu(getListView());
-    }
+	}
     
-    private void fillData() {
+    private void populateTasksList() {
     	
-        // Get all of the rows from the database and create the item list
-    	Cursor notesCursor = mDbHelper.fetchAllNotes();
+    	Cursor notesCursor = mTasksDatabaseHelper.fetchAllNotes();
         startManagingCursor(notesCursor);
         
         // Create an array to specify the fields we want to display in the list (only TITLE)
-        String[] from = new String[]{NotesDbAdapter.KEY_TITLE};
+        String[] from = new String[]{TaskDatabaseAdapter.KEY_TITLE};
         
         // and an array of the fields we want to bind those fields to (in this case just text1)
         int[] to = new int[]{R.id.text1};
         
-        // Now create a simple cursor adapter and set it to display
-//        SimpleCursorAdapter notes = 
-//        	    new SimpleCursorAdapter(this, R.layout.notes_row, notesCursor, from, to);
-        
-        TrackListAdapter notes = new TrackListAdapter(this, getApplication(), R.layout.notes_row, notesCursor, from, to);
+        TrackListAdapter notes = new TrackListAdapter(getApplication(), R.layout.notes_row, notesCursor, from, to);
         
         setListAdapter(notes);
     }
@@ -137,8 +139,8 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
 		switch(item.getItemId()) {
     	case DELETE_ID:
     		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
-	        mDbHelper.deleteNote(info.id);
-	        fillData();
+	        mTasksDatabaseHelper.deleteNote(info.id);
+	        populateTasksList();
 	        return true;
 		}
 		return super.onContextItemSelected(item);
@@ -153,7 +155,7 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
     protected void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);
         Intent i = new Intent(this, NoteEdit.class);
-        i.putExtra(NotesDbAdapter.KEY_ROWID, id);
+        i.putExtra(TaskDatabaseAdapter.KEY_ROWID, id);
         startActivityForResult(i, ACTIVITY_EDIT);
     }
 
@@ -161,86 +163,23 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
     protected void onActivityResult(int requestCode, int resultCode, 
                                     Intent intent) {
         super.onActivityResult(requestCode, resultCode, intent);
-        fillData();
+        populateTasksList();
     }
     
     static class TrackListAdapter extends SimpleCursorAdapter implements SectionIndexer {
 
-    	private final StringBuilder mBuilder = new StringBuilder();
-        
-    	private LayoutInflater mInflater;
         private AlphabetIndexer mIndexer;
         
-        private PomodoroTasks mActivity = null;
-        private String mConstraint = null;
-        private boolean mConstraintIsValid = false;
-        
-        static class ViewHolder {
-            TextView line1;
-            TextView line2;
-            TextView duration;
-            ImageView play_indicator;
-            CharArrayBuffer buffer1;
-            char [] buffer2;
-        }
-
-        TrackListAdapter(PomodoroTasks currentactivity, Context context, 
-                int layout, Cursor cursor, String[] from, int[] to
-                ) {
-            super(context, layout, cursor, from, to);
-            mActivity = currentactivity;
-        }
-        
-        public void setActivity(PomodoroTasks newactivity) {
-            mActivity = newactivity;
-        }
-
-        @Override
-        public View newView(Context context, Cursor cursor, ViewGroup parent) {
-            View v = super.newView(context, cursor, parent);
-            ImageView iv = (ImageView) v.findViewById(R.id.icon);
-            iv.setVisibility(View.VISIBLE);
-            iv.setImageResource(R.drawable.ic_mp_move);
-//            iv.setVisibility(View.GONE);
-            
-//            ViewHolder vh = new ViewHolder();
-//            vh.line1 = (TextView) v.findViewById(R.id.line1);
-//            vh.line2 = (TextView) v.findViewById(R.id.line2);
-//            vh.duration = (TextView) v.findViewById(R.id.duration);
-//            vh.play_indicator = (ImageView) v.findViewById(R.id.play_indicator);
-//            vh.buffer1 = new CharArrayBuffer(100);
-//            vh.buffer2 = new char[200];
-//            v.setTag(vh);
-            return v;
-        }
-        
-        @Override
-        public void changeCursor(Cursor cursor) {
+        TrackListAdapter(Context context, 
+                int layout, Cursor cursor, String[] from, int[] to) {
         	
-        	super.changeCursor(cursor);
-//            if (cursor != mActivity.mTrackCursor) {
-//                mActivity.mTrackCursor = cursor;
-//                super.changeCursor(cursor);
-//                getColumnIndices(cursor);
-//            }
+            super(context, layout, cursor, from, to);
         }
         
         @Override
         public Cursor runQueryOnBackgroundThread(CharSequence constraint) {
         	return super.runQueryOnBackgroundThread(constraint);
-//            String s = constraint.toString();
-//            if (mConstraintIsValid && (
-//                    (s == null && mConstraint == null) ||
-//                    (s != null && s.equals(mConstraint)))) {
-//                return getCursor();
-//            }
-//            Cursor c = mActivity.getTrackCursor(mQueryHandler, s, false);
-//            mConstraint = s;
-//            mConstraintIsValid = true;
-//            return c;
         }
-        
-        // SectionIndexer methods
         
         public Object[] getSections() {
             if (mIndexer != null) { 
@@ -260,33 +199,45 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
         }        
     }
     
-    private TouchInterceptor.DropListener mDropListener =
-        new TouchInterceptor.DropListener() {
-        public void drop(int from, int to) {
-        	
-        	Cursor cursor = (Cursor)getListAdapter().getItem(from);
-        	String fromSeq = cursor.getString(cursor.getColumnIndex(NotesDbAdapter.KEY_SEQUENCE));
-        	String fromRowId = cursor.getString(cursor.getColumnIndex(NotesDbAdapter.KEY_ROWID));
-        	String fromTitle = cursor.getString(cursor.getColumnIndex(NotesDbAdapter.KEY_TITLE));
+    private TouchInterceptor.DropListener mDropListener = new TouchInterceptor.DropListener() {
+
+    	public void drop(int from, int to) {
+
+    		move(from, to);
+        	int firstVisiblePosition = getFirstVisiblePostionBeforeRefresh();        	
+        	populateTasksList();
+        	scrollBackToViewingTasks(to, firstVisiblePosition);
+        }
+
+		private void scrollBackToViewingTasks(int to, int firstVisiblePosition) {
+			
+			int total = mTrackList.getCount();
+			if (total > TOTAL_TASKS_IN_VIEW){
+				if(total -1 == to){
+					
+					getListView().setSelectionFromTop(total  - 6, 0);
+				} else {
+					getListView().setSelectionFromTop(firstVisiblePosition, 0);
+				}
+        	}
+		}
+
+		private int getFirstVisiblePostionBeforeRefresh() {
+			
+			return mTrackList.getFirstVisiblePosition();
+		}
+
+		private void move(int from, int to) {
+			
+			Cursor cursor = (Cursor)getListAdapter().getItem(from);
+        	String fromSeq = cursor.getString(cursor.getColumnIndex(TaskDatabaseAdapter.KEY_SEQUENCE));
+        	String fromRowId = cursor.getString(cursor.getColumnIndex(TaskDatabaseAdapter.KEY_ROWID));
         	
         	cursor = (Cursor)getListAdapter().getItem(to);
-        	String toSeq = cursor.getString(cursor.getColumnIndex(NotesDbAdapter.KEY_SEQUENCE));
-        	String toRowId = cursor.getString(cursor.getColumnIndex(NotesDbAdapter.KEY_ROWID));
-        	String toTitle = cursor.getString(cursor.getColumnIndex(NotesDbAdapter.KEY_TITLE));
+        	String toSeq = cursor.getString(cursor.getColumnIndex(TaskDatabaseAdapter.KEY_SEQUENCE));
+        	String toRowId = cursor.getString(cursor.getColumnIndex(TaskDatabaseAdapter.KEY_ROWID));
         	
-        	Log.d(TAG, fromSeq + fromRowId + fromTitle);
-        	Log.d(TAG, toSeq + toRowId + toTitle);
-        	
-        	mDbHelper.move(fromRowId, fromSeq, toRowId, toSeq);
-        	
-        	fillData();
-        	
-        	if (to <= 5){
-        		getListView().setSelection(0);        		
-        	} else {
-        		getListView().setSelection(to - 4);
-        	}
-        	
-        }
+        	mTasksDatabaseHelper.move(fromRowId, fromSeq, toRowId, toSeq);
+		}
     };
 }

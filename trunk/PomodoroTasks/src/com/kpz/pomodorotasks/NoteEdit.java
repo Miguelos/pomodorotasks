@@ -28,13 +28,13 @@ public class NoteEdit extends Activity {
 	private EditText mTitleText;
     private EditText mBodyText;
     private Long mRowId;
-    private NotesDbAdapter mDbHelper;
+    private TaskDatabaseAdapter mDbHelper;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
     	super.onCreate(savedInstanceState);
     	 
-    	mDbHelper = new NotesDbAdapter(this);
+    	mDbHelper = new TaskDatabaseAdapter(this);
     	mDbHelper.open();
     	 
     	setContentView(R.layout.note_edit);
@@ -44,11 +44,11 @@ public class NoteEdit extends Activity {
     	 
     	Button confirmButton = (Button) findViewById(R.id.confirm);
     	 
-    	mRowId = savedInstanceState != null ? savedInstanceState.getLong(NotesDbAdapter.KEY_ROWID) 
+    	mRowId = savedInstanceState != null ? savedInstanceState.getLong(TaskDatabaseAdapter.KEY_ROWID) 
     	                                    : null;
     	if (mRowId == null) {
     	    Bundle extras = getIntent().getExtras();
-    	    mRowId = extras != null ? extras.getLong(NotesDbAdapter.KEY_ROWID) 
+    	    mRowId = extras != null ? extras.getLong(TaskDatabaseAdapter.KEY_ROWID) 
     	                            : null;
     	}
     	 
@@ -69,16 +69,16 @@ public class NoteEdit extends Activity {
             Cursor note = mDbHelper.fetchNote(mRowId);
             startManagingCursor(note);
             mTitleText.setText(note.getString(
-    	            note.getColumnIndexOrThrow(NotesDbAdapter.KEY_TITLE)));
+    	            note.getColumnIndexOrThrow(TaskDatabaseAdapter.KEY_TITLE)));
             mBodyText.setText(note.getString(
-                    note.getColumnIndexOrThrow(NotesDbAdapter.KEY_BODY)));
+                    note.getColumnIndexOrThrow(TaskDatabaseAdapter.KEY_BODY)));
         }
     }
     
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putLong(NotesDbAdapter.KEY_ROWID, mRowId);
+        outState.putLong(TaskDatabaseAdapter.KEY_ROWID, mRowId);
     }
     
     @Override

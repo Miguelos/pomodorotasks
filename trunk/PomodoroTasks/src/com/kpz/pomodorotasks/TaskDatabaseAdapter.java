@@ -34,7 +34,7 @@ import android.util.Log;
  * of using a collection of inner classes (which is less scalable and not
  * recommended).
  */
-public class NotesDbAdapter {
+public class TaskDatabaseAdapter {
 
 	private static final String TAG = "PomodoroTasks";
 	
@@ -88,7 +88,7 @@ public class NotesDbAdapter {
      * 
      * @param ctx the Context within which to work
      */
-    public NotesDbAdapter(Context ctx) {
+    public TaskDatabaseAdapter(Context ctx) {
         this.mCtx = ctx;
     }
 
@@ -101,7 +101,7 @@ public class NotesDbAdapter {
      *         initialization call)
      * @throws SQLException if the database could be neither opened or created
      */
-    public NotesDbAdapter open() throws SQLException {
+    public TaskDatabaseAdapter open() throws SQLException {
         mDbHelper = new DatabaseHelper(mCtx);
         mDb = mDbHelper.getWritableDatabase();
         return this;
