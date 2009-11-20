@@ -22,7 +22,6 @@ import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -227,7 +226,6 @@ public class TouchInterceptor extends ListView {
         View first = getChildAt(mFirstDragPos - getFirstVisiblePosition());
         
         for (int i = 0;; i++) {
-        	boolean isLastItem = false;
         	
             View vv = getChildAt(i);
             if (vv == null) {
@@ -243,14 +241,14 @@ public class TouchInterceptor extends ListView {
                      visibility = View.INVISIBLE;
                 } else {
                     // not hovering over it
-                	//visibility = View.INVISIBLE; // kavan testing
                     height = 1;
                 }
             } else if (i == childnum) {
             	
             	if (i == 6 && getLastVisiblePosition() == total - 1){
             		
-            		isLastItem = true;
+            		// do nothing for now
+            		// TODO - but do something to avoid the nasty shaky list when hovering over the last item!!
             		
             	} else {
             	
@@ -260,22 +258,12 @@ public class TouchInterceptor extends ListView {
 	                }
             	}
             }	
-//            } else if (i == 5 && childnum == 6 && vv.getLayoutParams().height == mItemHeightExpanded && getLastVisiblePosition() - getFirstVisiblePosition() == 5 && getLastVisiblePosition() == total - 1){
-//            	
-//            	Log.d(TAG, "else if - at last node... " + "count:" + total + ">>>>>>>>>>>>>>>>>>>>>>>>>> Item:"+ i + " Height Expanded mDragPos:" + mDragPos);
-//            	isLastItem = true;
-//            }
+
             ViewGroup.LayoutParams params = vv.getLayoutParams();
             params.height = height;
-            if (isLastItem){
-            	//height = mItemHeightExpanded;
-            //    vv.setPadding(vv.getPaddingLeft(), vv.getPaddingTop(), vv.getPaddingRight(), vv.getPaddingBottom() + 40);
-            }
+
             vv.setLayoutParams(params);
             vv.setVisibility(visibility);
-            if (isLastItem){
-            	//setSelection(getCount()-1);
-            }
         }
     }
     

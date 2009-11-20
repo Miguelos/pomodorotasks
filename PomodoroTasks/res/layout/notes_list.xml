@@ -16,30 +16,28 @@
         android:layout_weight="1"
         android:textSize="18sp"
         android:drawSelectorOnTop="false"
-        android:fastScrollEnabled="true" /> 
+        android:stackFromBottom="true"
+        android:fastScrollEnabled="true" 
+        android:transcriptMode="normal" /> 
 
-    <!-- <ListView android:id="@+id/android:list"
-          android:layout_width="wrap_content"
-        	android:layout_height="wrap_content"
-        	android:paddingTop="10px"
-        	style="@style/CustomListTheme"/> -->
   	<TextView android:id="@+id/android:empty"
           android:layout_width="wrap_content"
         	android:layout_height="wrap_content"
         	android:text="No Tasks!"/>
 
-    <LinearLayout android:layout_width="fill_parent" 
+    <LinearLayout android:layout_width="wrap_content" 
         android:layout_height="wrap_content"
         android:baselineAligned="false">
         <EditText android:id="@+id/left_text_edit"
-            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:maxEms="25"
-            android:minEms="10"
+            android:layout_width="0dp" 
+            android:layout_weight="1"
+            android:maxLines="3"
+            android:maxLength="70"
             android:layout_gravity="center_vertical"
-            android:text="@string/custom_title_left" android:hint="Enter New Task Here"/>
+            android:text="@string/custom_title_left" android:hint="Enter New Task Here    "/>
         <Button android:id="@+id/left_text_button"
-            android:layout_width="wrap_content" 
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:text="@string/custom_title_left_button"/>
