@@ -1,5 +1,3 @@
-#Pomodoro Tasks
-
 = Introduction =
 
 An Android app to manage tasks using Pomodoro Technique (http://www.pomodorotechnique.com/).
