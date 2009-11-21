@@ -22,6 +22,7 @@ import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -32,6 +33,7 @@ import android.view.WindowManager;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.widget.AdapterView;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 
 public class TouchInterceptor extends ListView {
@@ -115,7 +117,7 @@ public class TouchInterceptor extends ListView {
                     Rect r = mTempRect;
                     dragger.getDrawingRect(r);
                     // The dragger icon itself is quite small, so pretend the touch area is bigger
-                    if (x < r.right * 2) {
+                    if (x < r.right) {
                         item.setDrawingCacheEnabled(true);
                         // Create a copy of the drawing cache so that it does not get recycled
                         // by the framework when the list tries to clean up memory
@@ -222,9 +224,7 @@ public class TouchInterceptor extends ListView {
         }
         
         int total = getCount();
-
         View first = getChildAt(mFirstDragPos - getFirstVisiblePosition());
-        
         for (int i = 0;; i++) {
         	
             View vv = getChildAt(i);
@@ -247,8 +247,7 @@ public class TouchInterceptor extends ListView {
             	
             	if (i == 6 && getLastVisiblePosition() == total - 1){
             		
-            		// do nothing for now
-            		// TODO - but do something to avoid the nasty shaky list when hovering over the last item!!
+            		makeRoomAtListBottom(vv);
             		
             	} else {
             	
@@ -258,7 +257,7 @@ public class TouchInterceptor extends ListView {
 	                }
             	}
             }	
-
+            
             ViewGroup.LayoutParams params = vv.getLayoutParams();
             params.height = height;
 
@@ -266,6 +265,12 @@ public class TouchInterceptor extends ListView {
             vv.setVisibility(visibility);
         }
     }
+
+	private void makeRoomAtListBottom(View vv) {
+		LinearLayout.LayoutParams viewGroupParams = (LinearLayout.LayoutParams)getLayoutParams();
+		viewGroupParams.bottomMargin = vv.getHeight();
+		setLayoutParams(viewGroupParams);
+	}
     
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
