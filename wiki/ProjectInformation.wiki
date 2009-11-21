@@ -1,0 +1,10 @@
+#Pomodoro Tasks
+
+= Introduction =
+
+An Android app to manage tasks using Pomodoro Technique (http://www.pomodorotechnique.com/).
+
+
+= Project Status =
+
+As of 11/21/2009, the project is in the initial stages of development. I am currently using Google Tasks to manange the tasks, but as the list of pending tasks are growing, I am looking at using an agile project management tool.
