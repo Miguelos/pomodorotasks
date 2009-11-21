@@ -1,19 +1,3 @@
-/*
- * Copyright (C) 2008 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.kpz.pomodorotasks;
 
 import android.app.Activity;
@@ -23,7 +7,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
-public class NoteEdit extends Activity {
+public class TaskEdit extends Activity {
 
 	private EditText mTitleText;
     private EditText mBodyText;
@@ -37,7 +21,7 @@ public class NoteEdit extends Activity {
     	mDbHelper = new TaskDatabaseAdapter(this);
     	mDbHelper.open();
     	 
-    	setContentView(R.layout.note_edit);
+    	setContentView(R.layout.task_edit);
     	 
     	mTitleText = (EditText) findViewById(R.id.title);
     	mBodyText = (EditText) findViewById(R.id.body);
@@ -66,12 +50,12 @@ public class NoteEdit extends Activity {
     
     private void populateFields() {
         if (mRowId != null) {
-            Cursor note = mDbHelper.fetchNote(mRowId);
-            startManagingCursor(note);
-            mTitleText.setText(note.getString(
-    	            note.getColumnIndexOrThrow(TaskDatabaseAdapter.KEY_TITLE)));
-            mBodyText.setText(note.getString(
-                    note.getColumnIndexOrThrow(TaskDatabaseAdapter.KEY_BODY)));
+            Cursor task = mDbHelper.fetchTask(mRowId);
+            startManagingCursor(task);
+            mTitleText.setText(task.getString(
+    	            task.getColumnIndexOrThrow(TaskDatabaseAdapter.KEY_TITLE)));
+            mBodyText.setText(task.getString(
+                    task.getColumnIndexOrThrow(TaskDatabaseAdapter.KEY_BODY)));
         }
     }
     
@@ -98,12 +82,12 @@ public class NoteEdit extends Activity {
         String body = mBodyText.getText().toString();
 
         if (mRowId == null) {
-            long id = mDbHelper.createNote(title, body);
+            long id = mDbHelper.createTask(title, body);
             if (id > 0) {
                 mRowId = id;
             }
         } else {
-            mDbHelper.updateNote(mRowId, title, body);
+            mDbHelper.updateTask(mRowId, title, body);
         }
     }
 }

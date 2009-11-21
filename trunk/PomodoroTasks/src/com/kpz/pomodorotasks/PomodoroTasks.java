@@ -20,6 +20,7 @@ import android.widget.AlphabetIndexer;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SectionIndexer;
 import android.widget.SimpleCursorAdapter;
@@ -34,7 +35,7 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
 	private static final int TOTAL_TASKS_IN_VIEW = 6;
 	
 	private static final int ACTIVITY_CREATE=0;
-    private static final int ACTIVITY_EDIT=1;
+    private static final int ACTIVITY_RUN=1;
     
     private static final int INSERT_ID = Menu.FIRST;
     private static final int DELETE_ID = Menu.FIRST + 1;
@@ -46,7 +47,7 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        setContentView(R.layout.notes_list);
+        setContentView(R.layout.tasks_list);
         initDatabaseHelper();        
         initTasksList();
         initAddTaskInput();
@@ -77,26 +78,32 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
             
         	public void onClick(View v) {
  
-            	String title = leftTextEdit.getText().toString();
-            	mTasksDatabaseHelper.createNote(title, "");
-            	
-                leftTextEdit.setText(R.string.custom_title_left);
-                
+            	createNewTask(leftTextEdit);
                 populateTasksList();
+                resetAddTaskEntryDisplay(leftTextEdit);
+            }
+
+			private void resetAddTaskEntryDisplay(final EditText leftTextEdit) {
+				leftTextEdit.setText("");
                 getListView().requestFocus();
                 ((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(leftTextEdit.getWindowToken(), 0); 
 
 // to display on-screen keyboard                 
 //                ((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE))  
 //                .showSoftInput(editText, 0);  
-            }
+			}
+
+			private void createNewTask(final EditText leftTextEdit) {
+				String title = leftTextEdit.getText().toString();
+            	mTasksDatabaseHelper.createTask(title, "");
+			}
         });
 	}
     
     private void populateTasksList() {
     	
-    	Cursor notesCursor = mTasksDatabaseHelper.fetchAllNotes();
-        startManagingCursor(notesCursor);
+    	Cursor tasksCursor = mTasksDatabaseHelper.fetchAllTasks();
+        startManagingCursor(tasksCursor);
         
         // Create an array to specify the fields we want to display in the list (only TITLE)
         String[] from = new String[]{TaskDatabaseAdapter.KEY_TITLE};
@@ -104,9 +111,9 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
         // and an array of the fields we want to bind those fields to (in this case just text1)
         int[] to = new int[]{R.id.text1};
         
-        TrackListAdapter notes = new TrackListAdapter(getApplication(), R.layout.notes_row, notesCursor, from, to);
+        TrackListAdapter tasks = new TrackListAdapter(getApplication(), R.layout.tasks_row, tasksCursor, from, to);
         
-        setListAdapter(notes);
+        setListAdapter(tasks);
     }
     
     @Override
@@ -120,43 +127,43 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
     public boolean onMenuItemSelected(int featureId, MenuItem item) {
         switch(item.getItemId()) {
         case INSERT_ID:
-            createNote();
+            createTask();
             return true;
         }
        
         return super.onMenuItemSelected(featureId, item);
     }
 	
-    @Override
-	public void onCreateContextMenu(ContextMenu menu, View v,
-			ContextMenuInfo menuInfo) {
-		super.onCreateContextMenu(menu, v, menuInfo);
-        menu.add(0, DELETE_ID, 0, R.string.menu_delete);
-	}
+//    @Override
+//	public void onCreateContextMenu(ContextMenu menu, View v,
+//			ContextMenuInfo menuInfo) {
+//		super.onCreateContextMenu(menu, v, menuInfo);
+//        menu.add(0, DELETE_ID, 0, R.string.menu_delete);
+//	}
 
     @Override
 	public boolean onContextItemSelected(MenuItem item) {
 		switch(item.getItemId()) {
     	case DELETE_ID:
     		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
-	        mTasksDatabaseHelper.deleteNote(info.id);
+	        mTasksDatabaseHelper.deleteTask(info.id);
 	        populateTasksList();
 	        return true;
 		}
 		return super.onContextItemSelected(item);
 	}
 	
-    private void createNote() {
-        Intent i = new Intent(this, NoteEdit.class);
+    private void createTask() {
+        Intent i = new Intent(this, TaskEdit.class);
         startActivityForResult(i, ACTIVITY_CREATE);
     }
     
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);
-        Intent i = new Intent(this, NoteEdit.class);
+        Intent i = new Intent(this, TaskRun.class);
         i.putExtra(TaskDatabaseAdapter.KEY_ROWID, id);
-        startActivityForResult(i, ACTIVITY_EDIT);
+        startActivityForResult(i, ACTIVITY_RUN);
     }
 
     @Override
@@ -206,8 +213,18 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
     		move(from, to);
         	int firstVisiblePosition = getFirstVisiblePostionBeforeRefresh();        	
         	populateTasksList();
+        	
+        	resetBottomMargin();
         	scrollBackToViewingTasks(to, firstVisiblePosition);
         }
+
+		private void resetBottomMargin() {
+			LinearLayout.LayoutParams viewGroupParams = (LinearLayout.LayoutParams)getListView().getLayoutParams();
+			if (viewGroupParams.bottomMargin != 0){
+				viewGroupParams.bottomMargin = 0;
+	    		getListView().setLayoutParams(viewGroupParams);				
+			}
+		}
 
 		private void scrollBackToViewingTasks(int to, int firstVisiblePosition) {
 			

@@ -9,22 +9,6 @@
     android:layout_height="fill_parent"
     android:orientation="vertical">
     
-    <com.kpz.pomodorotasks.TouchInterceptor
-        android:id="@android:id/list"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:textSize="18sp"
-        android:drawSelectorOnTop="false"
-        android:stackFromBottom="true"
-        android:fastScrollEnabled="true" 
-        android:transcriptMode="normal" /> 
-
-  	<TextView android:id="@+id/android:empty"
-          android:layout_width="wrap_content"
-        	android:layout_height="wrap_content"
-        	android:text="No Tasks!"/>
-
     <LinearLayout android:layout_width="wrap_content" 
         android:layout_height="wrap_content"
         android:baselineAligned="false">
@@ -34,13 +18,30 @@
             android:layout_weight="1"
             android:maxLines="3"
             android:maxLength="70"
-            android:layout_gravity="center_vertical"
-            android:text="@string/custom_title_left" android:hint="Enter New Task Here    "/>
+            android:text="" android:hint="Enter New Task Here    "/>
         <Button android:id="@+id/left_text_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:text="@string/custom_title_left_button"/>
+            android:text="@string/add_button"/>
     </LinearLayout>
-        	
+    
+    <com.kpz.pomodorotasks.TouchInterceptor
+        android:id="@android:id/list"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textSize="18sp"
+        android:drawSelectorOnTop="false"
+        android:stackFromBottom="true"
+        android:fastScrollEnabled="true" 
+        android:transcriptMode="normal"
+        /> 
+
+<!-- android:layout_marginBottom="25sp"  -->
+
+  	<TextView android:id="@+id/android:empty"
+          android:layout_width="wrap_content"
+        	android:layout_height="wrap_content"
+        	android:text="No Tasks!"/>
+
 </LinearLayout>
