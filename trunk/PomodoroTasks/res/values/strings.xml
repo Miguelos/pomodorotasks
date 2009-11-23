@@ -4,14 +4,19 @@
     <string name="no_tasks">No Tasks Yet</string>
     <string name="menu_insert">Add Task</string>
     <string name="menu_delete">Delete Task</string>
-    <string name="title">Title</string>
-    <string name="body">Body</string>
+    <string name="description">Task</string>
     <string name="confirm">Save</string>
     <string name="edit_task">Edit Task</string>
     <string name="add_button">Add</string>
     
-    <string name="start">Start</string>
-    
     <!-- Do not translate. Background color for currently dragged item in playlist edit mode. -->
     <color name="dragndrop_background">#e0103010</color>
+    <color name="tomatoRed">#DF3232</color>
+
+    <string name="zeroTime">00:00</string>
+
+    <!--  Tags -->
+    <string name="TASK_CONTROL_BUTTON_STATE_TYPE">Task Control Button State</string>    
+    <string name="TO_PLAY_STATE">Task Control Button State</string>    
+    <string name="TO_STOP_STATE">Task Control Button State</string>    
 </resources>

@@ -8,6 +8,5 @@
             </intent-filter>
         </activity>
         <activity android:name=".TaskEdit" android:label="@string/app_name" android:theme="@style/CustomTheme"/>
-        <activity android:name=".TaskRun" android:label="@string/app_name" android:theme="@style/CustomTheme"/>
     </application>
 </manifest> 
