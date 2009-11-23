@@ -1,27 +1,32 @@
 package com.kpz.pomodorotasks;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
-import android.database.CharArrayBuffer;
 import android.database.Cursor;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.util.Log;
-import android.view.ContextMenu;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup.LayoutParams;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AlphabetIndexer;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.SectionIndexer;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
@@ -43,21 +48,148 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
     private ListView mTrackList;
     private TaskDatabaseAdapter mTasksDatabaseHelper;
     
+	private static final int ONE_SEC = 1000;
+	private TextView mTaskDescription;
+    private Long mRowId;
+	private ProgressBar progressBar;
+	private TextView mTimeLeft;
+	private int totalTime;
+    
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
         setContentView(R.layout.tasks_list);
+        
         initDatabaseHelper();        
         initTasksList();
         initAddTaskInput();
+        
+        initRunTaskPanel();
+    	
         registerForContextMenu(getListView());
     }
 
+	private void initRunTaskPanel() {
+		
+    	RelativeLayout runTaskPanel = (RelativeLayout)findViewById(R.id.runTaskPanel);
+		runTaskPanel.setVisibility(View.GONE);
+	}
+
+	private void showRunTaskPanel(String taskDescription) {
+		
+		RelativeLayout runTaskPanel = (RelativeLayout)findViewById(R.id.runTaskPanel);
+		runTaskPanel.setVisibility(View.VISIBLE);
+		
+		taskControlButton = (ImageButton) findViewById(R.id.control_icon);
+		
+    	mTaskDescription = (TextView) findViewById(R.id.task_description);
+    	mTaskDescription.setText(taskDescription);
+    	mTimeLeft = (TextView) findViewById(R.id.time_left);
+
+    	totalTime = 20;
+    	progressBar = (ProgressBar) findViewById(R.id.progress_horizontal);
+    	progressBar.setMax(totalTime - 1);
+
+    	//progressBar.setv = defaultButtonHeight;
+    	//populateFields();
+    	
+    	resetTaskRun(taskControlButton);
+    	
+    	taskControlButton.setOnClickListener(new View.OnClickListener() {
+
+    	    public void onClick(View view) {
+    	    	
+    	    	if (counter != null && taskControlButton.getTag(R.string.TASK_CONTROL_BUTTON_STATE_TYPE).equals(R.string.TO_STOP_STATE)){
+    	    		
+    	    		resetTaskRun(taskControlButton);
+    	    		
+    	    	} else {
+    	    		
+    	    		counter = new MyCount(totalTime * ONE_SEC, ONE_SEC);
+        	        counter.start();
+        	        
+        	        taskControlButton.setImageResource(R.drawable.ic_media_pause);
+        	        taskControlButton.setTag(R.string.TASK_CONTROL_BUTTON_STATE_TYPE, R.string.TO_STOP_STATE);
+        	        adjustHeightToDefault(taskControlButton);
+    	    	}
+    	    }
+    	});
+    	
+	}
+
+	private void resetTaskRun(final ImageButton taskControlButton) {
+		if (counter != null){
+    		counter.cancel();
+    	}
+		
+		resetProgressControl(taskControlButton);
+	}
+
+	private void resetProgressControl(final ImageButton taskControlButton) {
+		mTimeLeft.setText(R.string.zeroTime);
+		progressBar.setProgress(0);
+        taskControlButton.setImageResource(R.drawable.ic_media_play);
+        taskControlButton.setTag(R.string.TASK_CONTROL_BUTTON_STATE_TYPE, R.string.TO_PLAY_STATE);
+        adjustHeightToDefault(taskControlButton);
+	}
+
+	private void adjustHeightToDefault(final ImageButton taskControlButton) {
+		Button leftButton = (Button) findViewById(R.id.left_text_button);
+		int defaultButtonHeight = leftButton.getHeight();
+		Log.d(TAG, "startButton.getHeight():" + defaultButtonHeight);
+		taskControlButton.getLayoutParams().height = defaultButtonHeight;
+	}
+	
+    private void populateFields() {
+        if (mRowId != null) {
+            Cursor task = mTasksDatabaseHelper.fetchTask(mRowId);
+            startManagingCursor(task);
+            mTaskDescription.setText(task.getString(task.getColumnIndexOrThrow(TaskDatabaseAdapter.KEY_DESCRIPTION)));
+        }
+    }
+
+    public class MyCount extends CountDownTimer{
+	    
+    	public MyCount(long millisInFuture, long countDownInterval) {
+    		super(millisInFuture, countDownInterval);
+	    }
+	    
+	    @Override
+	    public void onFinish() {
+	    	resetProgressControl(taskControlButton);
+	    }
+	    
+	    @Override
+	    public void onTick(long millisUntilFinished) {
+	    	
+	    	final DateFormat dateFormat = new SimpleDateFormat("mm:ss");
+            String timeStr = dateFormat.format(new Date(millisUntilFinished));
+	    	mTimeLeft.setText(timeStr);
+	    	progressBar.incrementProgressBy(1);
+	    }
+    }
+    
 	private void initTasksList() {
 		initTasksListViewContainer();
         populateTasksList();
 	}
+	
+    private void populateTasksList() {
+    	
+    	Cursor tasksCursor = mTasksDatabaseHelper.fetchAllTasks();
+        startManagingCursor(tasksCursor);
+        
+        // Create an array to specify the fields we want to display in the list (only Description)
+        String[] from = new String[]{TaskDatabaseAdapter.KEY_DESCRIPTION};
+        
+        // and an array of the fields we want to bind those fields to (in this case just text1)
+        int[] to = new int[]{R.id.text1};
+        
+        TrackListAdapter tasks = new TrackListAdapter(getApplication(), R.layout.tasks_row, tasksCursor, from, to);
+        
+        setListAdapter(tasks);
+    }
 
 	private void initTasksListViewContainer() {
 		mTrackList = getListView();
@@ -94,27 +226,11 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
 			}
 
 			private void createNewTask(final EditText leftTextEdit) {
-				String title = leftTextEdit.getText().toString();
-            	mTasksDatabaseHelper.createTask(title, "");
+				String noteDescription = leftTextEdit.getText().toString();
+            	mTasksDatabaseHelper.createTask(noteDescription);
 			}
         });
 	}
-    
-    private void populateTasksList() {
-    	
-    	Cursor tasksCursor = mTasksDatabaseHelper.fetchAllTasks();
-        startManagingCursor(tasksCursor);
-        
-        // Create an array to specify the fields we want to display in the list (only TITLE)
-        String[] from = new String[]{TaskDatabaseAdapter.KEY_TITLE};
-        
-        // and an array of the fields we want to bind those fields to (in this case just text1)
-        int[] to = new int[]{R.id.text1};
-        
-        TrackListAdapter tasks = new TrackListAdapter(getApplication(), R.layout.tasks_row, tasksCursor, from, to);
-        
-        setListAdapter(tasks);
-    }
     
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -161,9 +277,12 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);
-        Intent i = new Intent(this, TaskRun.class);
-        i.putExtra(TaskDatabaseAdapter.KEY_ROWID, id);
-        startActivityForResult(i, ACTIVITY_RUN);
+//        Intent i = new Intent(this, TaskRun.class);
+//        i.putExtra(TaskDatabaseAdapter.KEY_ROWID, id);
+//        startActivityForResult(i, ACTIVITY_RUN);
+        
+        TextView textView = (TextView)v.findViewById(R.id.text1);
+        showRunTaskPanel(textView.getText().toString());
     }
 
     @Override
@@ -257,4 +376,8 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
         	mTasksDatabaseHelper.move(fromRowId, fromSeq, toRowId, toSeq);
 		}
     };
+
+	private MyCount counter;
+
+	private ImageButton taskControlButton;
 }

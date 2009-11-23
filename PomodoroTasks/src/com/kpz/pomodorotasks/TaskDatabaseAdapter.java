@@ -28,8 +28,7 @@ public class TaskDatabaseAdapter {
 
 	private static final String TAG = "PomodoroTasks";
 	
-    public static final String KEY_TITLE = "title";
-    public static final String KEY_BODY = "body";
+    public static final String KEY_DESCRIPTION = "description";
     public static final String KEY_SEQUENCE = "sequence";
     public static final String KEY_ROWID = "_id";
 
@@ -42,8 +41,7 @@ public class TaskDatabaseAdapter {
     private static final String DATABASE_CREATE =
             "create table " + DATABASE_TABLE + " (_id integer primary key autoincrement"
     				+ ", sequence integer"
-    				+ ", title text not null" 
-                    + ", body text not null);";
+    				+ ", description text not null);";
 
     private static final int DATABASE_VERSION = 2;
 
@@ -101,18 +99,16 @@ public class TaskDatabaseAdapter {
 
 
     /**
-     * Create a new task using the title and body provided. If the task is
+     * Create a new task. If the task is
      * successfully created return the new rowId for that task, otherwise return
      * a -1 to indicate failure.
      * 
-     * @param title the title of the task
-     * @param body the body of the task
+     * @param description the description of the task
      * @return rowId or -1 if failed
      */
-    public long createTask(String title, String body) {
+    public long createTask(String description) {
         ContentValues initialValues = new ContentValues();
-        initialValues.put(KEY_TITLE, title);
-        initialValues.put(KEY_BODY, body);
+        initialValues.put(KEY_DESCRIPTION, description);
 
         long taskId = mDb.insert(DATABASE_TABLE, null, initialValues);
         ContentValues args = new ContentValues();
@@ -140,8 +136,8 @@ public class TaskDatabaseAdapter {
      */
     public Cursor fetchAllTasks() {
 
-        return mDb.query(DATABASE_TABLE, new String[] {KEY_ROWID, KEY_TITLE,
-                KEY_BODY, KEY_SEQUENCE}, null, null, null, null, "sequence");
+        return mDb.query(DATABASE_TABLE, new String[] {KEY_ROWID, KEY_DESCRIPTION,
+                KEY_SEQUENCE}, null, null, null, null, "sequence");
     }
 
     /**
@@ -156,7 +152,7 @@ public class TaskDatabaseAdapter {
         Cursor mCursor =
 
                 mDb.query(true, DATABASE_TABLE, new String[] {KEY_ROWID,
-                        KEY_TITLE, KEY_BODY}, KEY_ROWID + "=" + rowId, null,
+                        KEY_DESCRIPTION}, KEY_ROWID + "=" + rowId, null,
                         null, null, null, null);
         if (mCursor != null) {
             mCursor.moveToFirst();
@@ -165,20 +161,9 @@ public class TaskDatabaseAdapter {
 
     }
 
-    /**
-     * Update the task using the details provided. The task to be updated is
-     * specified using the rowId, and it is altered to use the title and body
-     * values passed in
-     * 
-     * @param rowId id of task to update
-     * @param title value to set task title to
-     * @param body value to set task body to
-     * @return true if the task was successfully updated, false otherwise
-     */
-    public boolean updateTask(long rowId, String title, String body) {
+    public boolean updateTask(long rowId, String description) {
         ContentValues args = new ContentValues();
-        args.put(KEY_TITLE, title);
-        args.put(KEY_BODY, body);
+        args.put(KEY_DESCRIPTION, description);
 
         return mDb.update(DATABASE_TABLE, args, KEY_ROWID + "=" + rowId, null) > 0;
     }

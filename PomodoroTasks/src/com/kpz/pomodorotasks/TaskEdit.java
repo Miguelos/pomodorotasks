@@ -9,8 +9,7 @@ import android.widget.EditText;
 
 public class TaskEdit extends Activity {
 
-	private EditText mTitleText;
-    private EditText mBodyText;
+	private EditText mDescription;
     private Long mRowId;
     private TaskDatabaseAdapter mDbHelper;
     
@@ -23,8 +22,7 @@ public class TaskEdit extends Activity {
     	 
     	setContentView(R.layout.task_edit);
     	 
-    	mTitleText = (EditText) findViewById(R.id.title);
-    	mBodyText = (EditText) findViewById(R.id.body);
+    	mDescription = (EditText) findViewById(R.id.description);
     	 
     	Button confirmButton = (Button) findViewById(R.id.confirm);
     	 
@@ -52,10 +50,8 @@ public class TaskEdit extends Activity {
         if (mRowId != null) {
             Cursor task = mDbHelper.fetchTask(mRowId);
             startManagingCursor(task);
-            mTitleText.setText(task.getString(
-    	            task.getColumnIndexOrThrow(TaskDatabaseAdapter.KEY_TITLE)));
-            mBodyText.setText(task.getString(
-                    task.getColumnIndexOrThrow(TaskDatabaseAdapter.KEY_BODY)));
+            mDescription.setText(task.getString(
+    	            task.getColumnIndexOrThrow(TaskDatabaseAdapter.KEY_DESCRIPTION)));
         }
     }
     
@@ -78,16 +74,15 @@ public class TaskEdit extends Activity {
     }
     
     private void saveState() {
-        String title = mTitleText.getText().toString();
-        String body = mBodyText.getText().toString();
+        String description = mDescription.getText().toString();
 
         if (mRowId == null) {
-            long id = mDbHelper.createTask(title, body);
+            long id = mDbHelper.createTask(description);
             if (id > 0) {
                 mRowId = id;
             }
         } else {
-            mDbHelper.updateTask(mRowId, title, body);
+            mDbHelper.updateTask(mRowId, description);
         }
     }
 }

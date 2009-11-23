@@ -1,29 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<!-- Demonstrates how to use a custom title.
-     See corresponding Java code com.example.android.apis.app.CustomTitle.java. -->
-
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" 
     android:id="@+id/screen"
     android:layout_width="fill_parent" 
     android:layout_height="fill_parent"
     android:orientation="vertical">
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android" 
+    android:id="@+id/runTaskPanel"
+    android:layout_width="fill_parent" 
+    android:layout_height="wrap_content"
+    android:background="@color/tomatoRed"
+    android:drawable="@drawable/run_task_panel">
+    <!--  @android:drawable/editbox_background -->
     
-    <LinearLayout android:layout_width="wrap_content" 
-        android:layout_height="wrap_content"
-        android:baselineAligned="false">
-        <EditText android:id="@+id/left_text_edit"
+       <TextView android:id="@+id/task_description" xmlns:android="http://schemas.android.com/apk/res/android"
+           android:layout_width="fill_parent"
+           android:layout_height="wrap_content"
+           android:textColor="#000000"
+           android:paddingTop="10sp"
+           android:gravity="center_horizontal"
+           android:text="No Task Selected"/>
+
+
+       <TextView android:id="@+id/time_left" xmlns:android="http://schemas.android.com/apk/res/android"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:layout_below="@id/task_description"
+           android:text="@string/zeroTime"
+           android:layout_alignParentRight="true"
+           android:paddingRight="10sp"
+           android:textColor="#000000"
+         />
+
+        <ImageButton android:id="@+id/control_icon"
+            android:layout_width="wrap_content" 
             android:layout_height="wrap_content"
-            android:layout_width="0dp" 
-            android:layout_weight="1"
-            android:maxLines="3"
-            android:maxLength="70"
-            android:text="" android:hint="Enter New Task Here    "/>
-        <Button android:id="@+id/left_text_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/add_button"/>
-    </LinearLayout>
+            android:layout_below="@id/task_description"
+            android:layout_alignParentLeft="true"            
+            android:src="@+drawable/ic_media_play"
+            android:visibility="visible"
+        />
+        
+        <ProgressBar android:id="@+id/progress_horizontal" xmlns:android="http://schemas.android.com/apk/res/android"
+           style="?android:attr/progressBarStyleHorizontal"
+           android:progressDrawable="@drawable/custom_progress_horizontal" 
+           android:layout_width="fill_parent"
+           android:layout_height="wrap_content"
+           android:layout_below="@id/task_description"
+           android:paddingTop="15sp"
+           android:paddingRight="10sp"
+           android:layout_toLeftOf="@id/time_left"
+           android:layout_toRightOf="@id/control_icon"
+           android:maxHeight="5dip"
+           android:minHeight="5dip"
+        /> 
+        
+</RelativeLayout>
+    
     
     <com.kpz.pomodorotasks.TouchInterceptor
         android:id="@android:id/list"
@@ -37,11 +71,26 @@
         android:transcriptMode="normal"
         /> 
 
-<!-- android:layout_marginBottom="25sp"  -->
-
   	<TextView android:id="@+id/android:empty"
           android:layout_width="wrap_content"
         	android:layout_height="wrap_content"
         	android:text="No Tasks!"/>
+        	
+    <LinearLayout android:layout_width="wrap_content" 
+        android:layout_height="wrap_content"
+        android:baselineAligned="false"
+        android:background="@android:drawable/bottom_bar">
+        <EditText android:id="@+id/left_text_edit"
+            android:layout_height="wrap_content"
+            android:layout_width="fill_parent" 
+            android:layout_weight="1"
+            android:maxLines="3"
+            android:maxLength="70"
+            android:text="" android:hint="Enter New Task Here    "/>
+        <Button android:id="@+id/left_text_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/add_button"/>
+    </LinearLayout>        	
 
 </LinearLayout>
