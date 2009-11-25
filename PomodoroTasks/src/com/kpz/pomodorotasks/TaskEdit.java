@@ -30,7 +30,7 @@ public class TaskEdit extends Activity {
     	                                    : null;
     	if (mRowId == null) {
     	    Bundle extras = getIntent().getExtras();
-    	    mRowId = extras != null ? extras.getLong(TaskDatabaseAdapter.KEY_ROWID) 
+    	    mRowId = extras != null ? extras.getLong(TaskDatabaseAdapter.KEY_ROWID)
     	                            : null;
     	}
     	 
