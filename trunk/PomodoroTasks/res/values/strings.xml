@@ -2,8 +2,10 @@
 <resources>
     <string name="app_name">Pomodoro Tasks</string>
     <string name="no_tasks">No Tasks Yet</string>
-    <string name="menu_insert">Add Task</string>
-    <string name="menu_delete">Delete Task</string>
+    
+    <string name="menu_edit">Edit</string>
+    <string name="menu_delete">Delete</string>
+    
     <string name="description">Task</string>
     <string name="confirm">Save</string>
     <string name="edit_task">Edit Task</string>

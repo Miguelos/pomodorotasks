@@ -8,21 +8,20 @@ import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnClickListener;
-import android.view.ViewGroup.LayoutParams;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AlphabetIndexer;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
@@ -39,16 +38,16 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
 	
 	private static final int TOTAL_TASKS_IN_VIEW = 6;
 	
-	private static final int ACTIVITY_CREATE=0;
-    private static final int ACTIVITY_RUN=1;
+	private static final int ACTIVITY_EDIT=1;
+	
+	private static final int EDIT_ID = Menu.FIRST;
+	private static final int DELETE_ID = Menu.FIRST + 1;
     
-    private static final int INSERT_ID = Menu.FIRST;
-    private static final int DELETE_ID = Menu.FIRST + 1;
-
     private ListView mTrackList;
     private TaskDatabaseAdapter mTasksDatabaseHelper;
     
 	private static final int ONE_SEC = 1000;
+
 	private TextView mTaskDescription;
     private Long mRowId;
 	private ProgressBar progressBar;
@@ -235,52 +234,59 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
-        menu.add(0, INSERT_ID, 0, R.string.menu_insert);
+//        menu.add(0, EDIT_ID, 0, R.string.menu_edit);
         return true;
     }
 
     @Override
     public boolean onMenuItemSelected(int featureId, MenuItem item) {
-        switch(item.getItemId()) {
-        case INSERT_ID:
-            createTask();
-            return true;
-        }
+//        switch(item.getItemId()) {
+
+// TODO delete all and other good stuff        
+//        case INSERT_ID:
+//            createTask();
+//            return true;
+//        }
        
         return super.onMenuItemSelected(featureId, item);
     }
 	
-//    @Override
-//	public void onCreateContextMenu(ContextMenu menu, View v,
-//			ContextMenuInfo menuInfo) {
-//		super.onCreateContextMenu(menu, v, menuInfo);
-//        menu.add(0, DELETE_ID, 0, R.string.menu_delete);
-//	}
+    @Override
+	public void onCreateContextMenu(ContextMenu menu, View v,
+			ContextMenuInfo menuInfo) {
+		super.onCreateContextMenu(menu, v, menuInfo);
+		menu.add(0, EDIT_ID, 0, R.string.menu_edit);
+		menu.add(0, DELETE_ID, 0, R.string.menu_delete);
+	}
 
     @Override
 	public boolean onContextItemSelected(MenuItem item) {
-		switch(item.getItemId()) {
-    	case DELETE_ID:
-    		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
-	        mTasksDatabaseHelper.deleteTask(info.id);
+		
+    	AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
+    	Cursor cursor = (Cursor)getListAdapter().getItem(new Long(info.position).intValue());
+    	Long rowId = new Long(cursor.getString(cursor.getColumnIndex(TaskDatabaseAdapter.KEY_ROWID)));
+    	
+    	switch(item.getItemId()) {
+		case EDIT_ID:
+
+			Intent i = new Intent(this, TaskEdit.class);
+	        i.putExtra(TaskDatabaseAdapter.KEY_ROWID, rowId);
+	        startActivityForResult(i, ACTIVITY_EDIT);
+	        return true;
+	        
+		case DELETE_ID:
+    		
+	        mTasksDatabaseHelper.deleteTask(rowId);
 	        populateTasksList();
 	        return true;
 		}
 		return super.onContextItemSelected(item);
 	}
 	
-    private void createTask() {
-        Intent i = new Intent(this, TaskEdit.class);
-        startActivityForResult(i, ACTIVITY_CREATE);
-    }
-    
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);
-//        Intent i = new Intent(this, TaskRun.class);
-//        i.putExtra(TaskDatabaseAdapter.KEY_ROWID, id);
-//        startActivityForResult(i, ACTIVITY_RUN);
-        
+
         TextView textView = (TextView)v.findViewById(R.id.text1);
         showRunTaskPanel(textView.getText().toString());
     }
