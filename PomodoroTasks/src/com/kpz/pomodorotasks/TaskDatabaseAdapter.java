@@ -98,14 +98,6 @@ public class TaskDatabaseAdapter {
     }
 
 
-    /**
-     * Create a new task. If the task is
-     * successfully created return the new rowId for that task, otherwise return
-     * a -1 to indicate failure.
-     * 
-     * @param description the description of the task
-     * @return rowId or -1 if failed
-     */
     public long createTask(String description) {
         ContentValues initialValues = new ContentValues();
         initialValues.put(KEY_DESCRIPTION, description);
@@ -118,23 +110,21 @@ public class TaskDatabaseAdapter {
 		return taskId;
     }
 
-    /**
-     * Delete the task with the given rowId
-     * 
-     * @param rowId id of task to delete
-     * @return true if deleted, false otherwise
-     */
-    public boolean deleteTask(long rowId) {
+    public boolean delete(long rowId) {
 
         return mDb.delete(DATABASE_TABLE, KEY_ROWID + "=" + rowId, null) > 0;
     }
+    
+	public boolean deleteAll() {
+        return mDb.delete(DATABASE_TABLE, null, null) > 0;
+	}
 
     /**
      * Return a Cursor over the list of all tasks in the database
      * 
      * @return Cursor over all tasks
      */
-    public Cursor fetchAllTasks() {
+    public Cursor fetchAll() {
 
         return mDb.query(DATABASE_TABLE, new String[] {KEY_ROWID, KEY_DESCRIPTION,
                 KEY_SEQUENCE}, null, null, null, null, "sequence");
@@ -147,7 +137,7 @@ public class TaskDatabaseAdapter {
      * @return Cursor positioned to matching task, if found
      * @throws SQLException if task could not be found/retrieved
      */
-    public Cursor fetchTask(long rowId) throws SQLException {
+    public Cursor fetch(long rowId) throws SQLException {
 
         Cursor mCursor =
 
@@ -161,22 +151,17 @@ public class TaskDatabaseAdapter {
 
     }
 
-    public boolean updateTask(long rowId, String description) {
+    public boolean update(long rowId, String description) {
         ContentValues args = new ContentValues();
         args.put(KEY_DESCRIPTION, description);
 
         return mDb.update(DATABASE_TABLE, args, KEY_ROWID + "=" + rowId, null) > 0;
     }
 
-	public void move(String fromRowIdStr, String fromSeqStr, String toRowIdStr,
-			String toSeqStr) {
+	public void move(int fromSeq, int toRowId,
+			int toSeq) {
 
 		
-		int fromSeq = Integer.parseInt(fromSeqStr);
-		int toSeq = Integer.parseInt(toSeqStr);
-		int fromRowId = Integer.parseInt(fromRowIdStr);
-		int toRowId = Integer.parseInt(toRowIdStr);
-
 		if (fromSeq == toSeq){
 			return;
 		}

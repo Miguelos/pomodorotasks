@@ -5,6 +5,7 @@
     
     <string name="menu_edit">Edit</string>
     <string name="menu_delete">Delete</string>
+    <string name="menu_delete_all">Empty</string>
     
     <string name="description">Task</string>
     <string name="confirm">Save</string>
