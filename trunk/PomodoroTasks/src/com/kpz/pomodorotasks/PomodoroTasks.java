@@ -38,10 +38,12 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
 	
 	private static final int TOTAL_TASKS_IN_VIEW = 6;
 	
-	private static final int ACTIVITY_EDIT=1;
+	private static final int ACTIVITY_EDIT = 1;
 	
-	private static final int EDIT_ID = Menu.FIRST;
-	private static final int DELETE_ID = Menu.FIRST + 1;
+	private static final int CONTEXT_MENU_EDIT_ID = Menu.FIRST;
+	private static final int CONTEXT_MENU_DELETE_ID = Menu.FIRST + 1;
+	
+	private static final int MAIN_MENU_DELETE_ALL_ID = Menu.FIRST;
     
     private ListView mTrackList;
     private TaskDatabaseAdapter mTasksDatabaseHelper;
@@ -142,7 +144,7 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
 	
     private void populateFields() {
         if (mRowId != null) {
-            Cursor task = mTasksDatabaseHelper.fetchTask(mRowId);
+            Cursor task = mTasksDatabaseHelper.fetch(mRowId);
             startManagingCursor(task);
             mTaskDescription.setText(task.getString(task.getColumnIndexOrThrow(TaskDatabaseAdapter.KEY_DESCRIPTION)));
         }
@@ -176,7 +178,7 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
 	
     private void populateTasksList() {
     	
-    	Cursor tasksCursor = mTasksDatabaseHelper.fetchAllTasks();
+    	Cursor tasksCursor = mTasksDatabaseHelper.fetchAll();
         startManagingCursor(tasksCursor);
         
         // Create an array to specify the fields we want to display in the list (only Description)
@@ -234,19 +236,19 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
-//        menu.add(0, EDIT_ID, 0, R.string.menu_edit);
+        menu.add(0, MAIN_MENU_DELETE_ALL_ID, 0, R.string.menu_delete_all);
         return true;
     }
 
     @Override
     public boolean onMenuItemSelected(int featureId, MenuItem item) {
-//        switch(item.getItemId()) {
+        switch(item.getItemId()) {
 
-// TODO delete all and other good stuff        
-//        case INSERT_ID:
-//            createTask();
-//            return true;
-//        }
+        case MAIN_MENU_DELETE_ALL_ID:
+        	mTasksDatabaseHelper.deleteAll();
+	        populateTasksList();
+        	return true;
+        }
        
         return super.onMenuItemSelected(featureId, item);
     }
@@ -255,8 +257,8 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
 	public void onCreateContextMenu(ContextMenu menu, View v,
 			ContextMenuInfo menuInfo) {
 		super.onCreateContextMenu(menu, v, menuInfo);
-		menu.add(0, EDIT_ID, 0, R.string.menu_edit);
-		menu.add(0, DELETE_ID, 0, R.string.menu_delete);
+		menu.add(0, CONTEXT_MENU_EDIT_ID, 0, R.string.menu_edit);
+		menu.add(0, CONTEXT_MENU_DELETE_ID, 0, R.string.menu_delete);
 	}
 
     @Override
@@ -267,16 +269,16 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
     	Long rowId = new Long(cursor.getString(cursor.getColumnIndex(TaskDatabaseAdapter.KEY_ROWID)));
     	
     	switch(item.getItemId()) {
-		case EDIT_ID:
+		case CONTEXT_MENU_EDIT_ID:
 
 			Intent i = new Intent(this, TaskEdit.class);
 	        i.putExtra(TaskDatabaseAdapter.KEY_ROWID, rowId);
 	        startActivityForResult(i, ACTIVITY_EDIT);
 	        return true;
 	        
-		case DELETE_ID:
+		case CONTEXT_MENU_DELETE_ID:
     		
-	        mTasksDatabaseHelper.deleteTask(rowId);
+	        mTasksDatabaseHelper.delete(rowId);
 	        populateTasksList();
 	        return true;
 		}
@@ -372,14 +374,13 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
 		private void move(int from, int to) {
 			
 			Cursor cursor = (Cursor)getListAdapter().getItem(from);
-        	String fromSeq = cursor.getString(cursor.getColumnIndex(TaskDatabaseAdapter.KEY_SEQUENCE));
-        	String fromRowId = cursor.getString(cursor.getColumnIndex(TaskDatabaseAdapter.KEY_ROWID));
-        	
+        	int fromSeq = Integer.parseInt(cursor.getString(cursor.getColumnIndex(TaskDatabaseAdapter.KEY_SEQUENCE)));
+
         	cursor = (Cursor)getListAdapter().getItem(to);
-        	String toSeq = cursor.getString(cursor.getColumnIndex(TaskDatabaseAdapter.KEY_SEQUENCE));
-        	String toRowId = cursor.getString(cursor.getColumnIndex(TaskDatabaseAdapter.KEY_ROWID));
+        	int toSeq = Integer.parseInt(cursor.getString(cursor.getColumnIndex(TaskDatabaseAdapter.KEY_SEQUENCE)));
+    		int toRowId = Integer.parseInt(cursor.getString(cursor.getColumnIndex(TaskDatabaseAdapter.KEY_ROWID)));
         	
-        	mTasksDatabaseHelper.move(fromRowId, fromSeq, toRowId, toSeq);
+        	mTasksDatabaseHelper.move(fromSeq, toRowId, toSeq);
 		}
     };
 

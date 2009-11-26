@@ -48,7 +48,7 @@ public class TaskEdit extends Activity {
     
     private void populateFields() {
         if (mRowId != null) {
-            Cursor task = mDbHelper.fetchTask(mRowId);
+            Cursor task = mDbHelper.fetch(mRowId);
             startManagingCursor(task);
             mDescription.setText(task.getString(
     	            task.getColumnIndexOrThrow(TaskDatabaseAdapter.KEY_DESCRIPTION)));
@@ -82,7 +82,7 @@ public class TaskEdit extends Activity {
                 mRowId = id;
             }
         } else {
-            mDbHelper.updateTask(mRowId, description);
+            mDbHelper.update(mRowId, description);
         }
     }
 }

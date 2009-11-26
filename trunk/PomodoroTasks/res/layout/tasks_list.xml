@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8" ?>
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" 
     android:id="@+id/screen"
@@ -6,15 +6,15 @@
     android:layout_height="fill_parent"
     android:orientation="vertical">
 
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android" 
-    android:id="@+id/runTaskPanel"
-    android:layout_width="fill_parent" 
-    android:layout_height="wrap_content"
-    android:background="@color/tomatoRed"
-    android:drawable="@drawable/run_task_panel">
+    <RelativeLayout  
+	    android:id="@+id/runTaskPanel"
+	    android:layout_width="fill_parent" 
+	    android:layout_height="wrap_content"
+	    android:background="@color/tomatoRed"
+	    android:drawable="@drawable/run_task_panel">
     <!--  @android:drawable/editbox_background -->
     
-       <TextView android:id="@+id/task_description" xmlns:android="http://schemas.android.com/apk/res/android"
+       <TextView android:id="@+id/task_description" 
            android:layout_width="fill_parent"
            android:layout_height="wrap_content"
            android:textColor="#000000"
@@ -23,7 +23,7 @@
            android:text="No Task Selected"/>
 
 
-       <TextView android:id="@+id/time_left" xmlns:android="http://schemas.android.com/apk/res/android"
+       <TextView android:id="@+id/time_left" 
            android:layout_width="wrap_content"
            android:layout_height="wrap_content"
            android:layout_below="@id/task_description"
@@ -39,10 +39,11 @@
             android:layout_below="@id/task_description"
             android:layout_alignParentLeft="true"            
             android:src="@+drawable/ic_media_play"
+            android:layout_weight="1"
             android:visibility="visible"
         />
         
-        <ProgressBar android:id="@+id/progress_horizontal" xmlns:android="http://schemas.android.com/apk/res/android"
+        <ProgressBar android:id="@+id/progress_horizontal" 
            style="?android:attr/progressBarStyleHorizontal"
            android:progressDrawable="@drawable/custom_progress_horizontal" 
            android:layout_width="fill_parent"
@@ -56,37 +57,38 @@
            android:minHeight="5dip"
         /> 
         
-</RelativeLayout>
+    </RelativeLayout>
     
     
     <com.kpz.pomodorotasks.TouchInterceptor
         android:id="@android:id/list"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:textSize="18sp"
         android:drawSelectorOnTop="false"
-        android:stackFromBottom="true"
         android:fastScrollEnabled="true" 
         android:transcriptMode="normal"
+        android:layout_height="0dip"
+        android:layout_weight="1"        
         /> 
-
+        
   	<TextView android:id="@+id/android:empty"
           android:layout_width="wrap_content"
         	android:layout_height="wrap_content"
-        	android:text="No Tasks!"/>
+        	android:layout_weight="1"
+        	android:text=""/>
         	
     <LinearLayout android:layout_width="wrap_content" 
         android:layout_height="wrap_content"
         android:baselineAligned="false"
         android:background="@android:drawable/bottom_bar">
+
+
         <EditText android:id="@+id/left_text_edit"
             android:layout_height="wrap_content"
-            android:layout_width="fill_parent" 
-            android:layout_weight="1"
+            android:layout_width="fill_parent"
+            android:layout_weight="1" 
             android:maxLines="3"
             android:maxLength="70"
-            android:text="" android:hint="Enter New Task Here    "/>
+            android:text="" android:hint="New Task"/>
         <Button android:id="@+id/left_text_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
