@@ -8,8 +8,11 @@ import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.DeadObjectException;
+import android.os.Vibrator;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
@@ -55,12 +58,16 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
 	private ProgressBar progressBar;
 	private TextView mTimeLeft;
 	private int totalTime;
+	
+	private Vibrator vibrator;
     
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
         setContentView(R.layout.tasks_list);
+        
+        vibrator = (Vibrator)getSystemService(VIBRATOR_SERVICE);
         
         initDatabaseHelper();        
         initTasksList();
@@ -88,7 +95,7 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
     	mTaskDescription.setText(taskDescription);
     	mTimeLeft = (TextView) findViewById(R.id.time_left);
 
-    	totalTime = 20;
+    	totalTime = 10;
     	progressBar = (ProgressBar) findViewById(R.id.progress_horizontal);
     	progressBar.setMax(totalTime - 1);
 
@@ -142,22 +149,24 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
 		taskControlButton.getLayoutParams().height = defaultButtonHeight;
 	}
 	
-    private void populateFields() {
-        if (mRowId != null) {
-            Cursor task = mTasksDatabaseHelper.fetch(mRowId);
-            startManagingCursor(task);
-            mTaskDescription.setText(task.getString(task.getColumnIndexOrThrow(TaskDatabaseAdapter.KEY_DESCRIPTION)));
-        }
-    }
-
     public class MyCount extends CountDownTimer{
 	    
-    	public MyCount(long millisInFuture, long countDownInterval) {
+		public MyCount(long millisInFuture, long countDownInterval) {
     		super(millisInFuture, countDownInterval);
 	    }
 	    
 	    @Override
 	    public void onFinish() {
+	    	
+	        MediaPlayer mp = MediaPlayer.create(getBaseContext(), R.raw.freesoundprojectdotorg_32568__erh__indian_brass_pestle);
+	        mp.start();
+	        
+	        vibrator.vibrate(1000); 
+	        
+	        while(mp.isPlaying()){
+	        	
+	        }
+	        
 	    	resetProgressControl(taskControlButton);
 	    }
 	    
