@@ -31,7 +31,28 @@ public class TaskDatabaseAdapter {
     public static final String KEY_DESCRIPTION = "description";
     public static final String KEY_SEQUENCE = "sequence";
     public static final String KEY_ROWID = "_id";
+    public static final String KEY_STATUS = "status";
+    public static final String[] SELECTION_KEYS = {KEY_ROWID, KEY_DESCRIPTION, KEY_SEQUENCE, KEY_STATUS};
+    
+    enum Status_Type {
+    	COMPLETE("Completed"),
+    	OPEN("Open");
+    	
+    	private String description;
 
+		private Status_Type(String desc) {
+    		this.setDescription(desc);
+		}
+
+		public void setDescription(String description) {
+			this.description = description;
+		}
+
+		public String getDescription() {
+			return description;
+		}
+    };
+    
     private DatabaseHelper mDbHelper;
     private SQLiteDatabase mDb;
     
@@ -41,9 +62,10 @@ public class TaskDatabaseAdapter {
     private static final String DATABASE_CREATE =
             "create table " + DATABASE_TABLE + " (_id integer primary key autoincrement"
     				+ ", sequence integer"
+    				+ ", status text not null default Open"
     				+ ", description text not null);";
 
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
 
     private final Context mCtx;
 
@@ -126,8 +148,7 @@ public class TaskDatabaseAdapter {
      */
     public Cursor fetchAll() {
 
-        return mDb.query(DATABASE_TABLE, new String[] {KEY_ROWID, KEY_DESCRIPTION,
-                KEY_SEQUENCE}, null, null, null, null, "sequence");
+        return mDb.query(DATABASE_TABLE, SELECTION_KEYS, null, null, null, null, "sequence");
     }
 
     /**
@@ -141,8 +162,7 @@ public class TaskDatabaseAdapter {
 
         Cursor mCursor =
 
-                mDb.query(true, DATABASE_TABLE, new String[] {KEY_ROWID,
-                        KEY_DESCRIPTION}, KEY_ROWID + "=" + rowId, null,
+                mDb.query(true, DATABASE_TABLE, SELECTION_KEYS, KEY_ROWID + "=" + rowId, null,
                         null, null, null, null);
         if (mCursor != null) {
             mCursor.moveToFirst();
@@ -158,6 +178,14 @@ public class TaskDatabaseAdapter {
         return mDb.update(DATABASE_TABLE, args, KEY_ROWID + "=" + rowId, null) > 0;
     }
 
+	public boolean updateStatus(int rowId, boolean completed) {
+
+        ContentValues args = new ContentValues();
+        args.put(KEY_STATUS, completed ? Status_Type.COMPLETE.getDescription() : Status_Type.OPEN.getDescription());
+
+        return mDb.update(DATABASE_TABLE, args, KEY_ROWID + "=" + rowId, null) > 0;
+	}
+	
 	public void move(int fromSeq, int toRowId,
 			int toSeq) {
 

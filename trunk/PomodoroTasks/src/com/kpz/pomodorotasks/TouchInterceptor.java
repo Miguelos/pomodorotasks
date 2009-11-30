@@ -62,6 +62,10 @@ public class TouchInterceptor extends ListView {
     private int mItemHeightNormal;
     private int mItemHeightExpanded;
 	private Context mContext;
+	
+    private static final int SWIPE_MIN_DISTANCE = 120;
+    private static final int SWIPE_MAX_OFF_PATH = 250;
+	private static final int SWIPE_THRESHOLD_VELOCITY = 100; // 200 
 
     public TouchInterceptor(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -71,30 +75,49 @@ public class TouchInterceptor extends ListView {
         Resources res = getResources();
         mItemHeightNormal = res.getDimensionPixelSize(R.dimen.normal_height);
         mItemHeightExpanded = res.getDimensionPixelSize(R.dimen.expanded_height);
+        mRemoveMode = FLING;
     }
     
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
+    	
         if (mRemoveListener != null && mGestureDetector == null) {
             if (mRemoveMode == FLING) {
+            	
                 mGestureDetector = new GestureDetector(getContext(), new SimpleOnGestureListener() {
                     @Override
                     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
                             float velocityY) {
-                        if (mDragView != null) {
-                            if (velocityX > 1000) {
-                                Rect r = mTempRect;
-                                mDragView.getDrawingRect(r);
-                                if ( e2.getX() > r.right * 2 / 3) {
-                                    // fast fling right with release near the right edge of the screen
-                                    stopDragging();
-                                    mRemoveListener.remove(mFirstDragPos);
-                                    unExpandViews(true);
-                                }
-                            }
-                            // flinging while dragging should have no effect
-                            return true;
-                        }
+
+                    	int itemnum = pointToPosition((int)e1.getX(), (int)e1.getY());
+                    	Log.d(TAG, "touch interceptor onFling itemnum: " + itemnum + " ; velocityX:" + velocityX + " ; ev2.getX():" + e2.getX() + " ; e1.getX():" + e1.getX());
+
+						if (itemnum != INVALID_POSITION && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
+
+	                    	if (Math.abs(e1.getY() - e2.getY()) > SWIPE_MAX_OFF_PATH){
+						    	
+						    	return false;
+						    }
+
+							if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE) {
+
+								Log.d(TAG, "left to right");
+								stopDragging();
+								mRemoveListener.checkOff(itemnum);
+									unExpandViews(false);
+
+								return true;
+
+							} else if (e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE) {
+
+								Log.d(TAG, "right to left");
+								stopDragging();
+								mRemoveListener.uncheckOff(itemnum);
+									unExpandViews(false);
+
+								return true;
+							}
+						}
                         return false;
                     }
                 });
@@ -135,6 +158,7 @@ public class TouchInterceptor extends ListView {
                     break;
             }
         }
+        
         return super.onInterceptTouchEvent(ev);
     }
     
@@ -253,7 +277,6 @@ public class TouchInterceptor extends ListView {
             	
 	                if (mDragPos < getCount() - 1) {
 	                    height = mItemHeightExpanded;
-	                    //vv.setPadding(0, 0, 0, 20);
 	                }
             	}
             }	
@@ -274,9 +297,13 @@ public class TouchInterceptor extends ListView {
     
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
+    	
         if (mGestureDetector != null) {
-            mGestureDetector.onTouchEvent(ev);
+            if(mGestureDetector.onTouchEvent(ev)){
+            	return true;
+            }
         }
+        
         if ((mDragListener != null || mDropListener != null) && mDragView != null) {
             int action = ev.getAction(); 
             switch (action) {
@@ -285,9 +312,12 @@ public class TouchInterceptor extends ListView {
                     Rect r = mTempRect;
                     mDragView.getDrawingRect(r);
                     stopDragging();
-                    if (mRemoveMode == SLIDE && ev.getX() > r.right * 3 / 4) {
-                        if (mRemoveListener != null) {
-                            mRemoveListener.remove(mFirstDragPos);
+                
+                    float expectedRightValue = r.right * 1/2;
+                    if (mRemoveMode == SLIDE && ev.getX() > expectedRightValue) {
+                    	if (mRemoveListener != null) {
+                    		// Not implemented
+                            //mRemoveListener.checkOff(mFirstDragPos);
                         }
                         unExpandViews(true);
                     } else {
@@ -339,6 +369,7 @@ public class TouchInterceptor extends ListView {
             }
             return true;
         }
+        
         return super.onTouchEvent(ev);
     }
     
@@ -415,6 +446,8 @@ public class TouchInterceptor extends ListView {
         void drop(int from, int to);
     }
     public interface RemoveListener {
-        void remove(int which);
+        void checkOff(int which);
+
+		void uncheckOff(int mFirstDragPos);
     }
 }
