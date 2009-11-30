@@ -4,20 +4,24 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import com.kpz.pomodorotasks.TaskDatabaseAdapter.Status_Type;
+
 import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Paint;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.os.DeadObjectException;
 import android.os.Vibrator;
+import android.text.TextPaint;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.InputMethodManager;
@@ -25,6 +29,7 @@ import android.widget.AlphabetIndexer;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
@@ -33,8 +38,9 @@ import android.widget.SectionIndexer;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.widget.SimpleCursorAdapter.ViewBinder;
 
-public class PomodoroTasks extends ListActivity implements View.OnCreateContextMenuListener {
+public class PomodoroTasks extends ListActivity {
     
 
 	private static final String TAG = "PomodoroTasks";
@@ -48,17 +54,18 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
 	
 	private static final int MAIN_MENU_DELETE_ALL_ID = Menu.FIRST;
     
-    private ListView mTrackList;
+    private ListView taskList;
     private TaskDatabaseAdapter mTasksDatabaseHelper;
     
 	private static final int ONE_SEC = 1000;
 
 	private TextView mTaskDescription;
-    private Long mRowId;
 	private ProgressBar progressBar;
 	private TextView mTimeLeft;
 	private int totalTime;
-	
+
+	private MyCount counter;
+	private ImageButton taskControlButton;
 	private Vibrator vibrator;
     
     @Override
@@ -72,12 +79,11 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
         initDatabaseHelper();        
         initTasksList();
         initAddTaskInput();
-        
         initRunTaskPanel();
     	
         registerForContextMenu(getListView());
     }
-
+    
 	private void initRunTaskPanel() {
 		
     	RelativeLayout runTaskPanel = (RelativeLayout)findViewById(R.id.runTaskPanel);
@@ -145,41 +151,9 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
 	private void adjustHeightToDefault(final ImageButton taskControlButton) {
 		Button leftButton = (Button) findViewById(R.id.left_text_button);
 		int defaultButtonHeight = leftButton.getHeight();
-		Log.d(TAG, "startButton.getHeight():" + defaultButtonHeight);
 		taskControlButton.getLayoutParams().height = defaultButtonHeight;
 	}
 	
-    public class MyCount extends CountDownTimer{
-	    
-		public MyCount(long millisInFuture, long countDownInterval) {
-    		super(millisInFuture, countDownInterval);
-	    }
-	    
-	    @Override
-	    public void onFinish() {
-	    	
-	        MediaPlayer mp = MediaPlayer.create(getBaseContext(), R.raw.freesoundprojectdotorg_32568__erh__indian_brass_pestle);
-	        mp.start();
-	        
-	        vibrator.vibrate(1000); 
-	        
-	        while(mp.isPlaying()){
-	        	
-	        }
-	        
-	    	resetProgressControl(taskControlButton);
-	    }
-	    
-	    @Override
-	    public void onTick(long millisUntilFinished) {
-	    	
-	    	final DateFormat dateFormat = new SimpleDateFormat("mm:ss");
-            String timeStr = dateFormat.format(new Date(millisUntilFinished));
-	    	mTimeLeft.setText(timeStr);
-	    	progressBar.incrementProgressBy(1);
-	    }
-    }
-    
 	private void initTasksList() {
 		initTasksListViewContainer();
         populateTasksList();
@@ -191,23 +165,122 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
         startManagingCursor(tasksCursor);
         
         // Create an array to specify the fields we want to display in the list (only Description)
-        String[] from = new String[]{TaskDatabaseAdapter.KEY_DESCRIPTION};
+        String[] from = new String[]{TaskDatabaseAdapter.KEY_DESCRIPTION, TaskDatabaseAdapter.KEY_STATUS};
         
         // and an array of the fields we want to bind those fields to (in this case just text1)
-        int[] to = new int[]{R.id.text1};
+        int[] to = new int[]{R.id.text1, R.id.taskRow};
         
-        TrackListAdapter tasks = new TrackListAdapter(getApplication(), R.layout.tasks_row, tasksCursor, from, to);
+        SimpleCursorAdapter tasks = new SimpleCursorAdapter(getApplication(), R.layout.tasks_row, tasksCursor, from, to);
+        
+        tasks.setViewBinder(new ViewBinder() {
+			
+			public boolean setViewValue(View view, Cursor cursor, int columnIndex) {
+				
+				if (view.getId() == R.id.taskRow){
+
+					TextView textView = (TextView)view.findViewById(R.id.text1);
+					
+					String statusText = cursor.getString(columnIndex);
+					if (Status_Type.OPEN.getDescription().equals(statusText)){
+						textView.getPaint().setStrikeThruText(false);
+					} else if (Status_Type.COMPLETE.getDescription().equals(statusText)){
+						textView.getPaint().setStrikeThruText(true);
+					}
+					
+					return true;
+				}
+				
+				return false;
+			}
+		});
         
         setListAdapter(tasks);
+        taskListCursor = tasks.getCursor();
     }
 
 	private void initTasksListViewContainer() {
-		mTrackList = getListView();
-        mTrackList.setOnCreateContextMenuListener(this);
-        ((TouchInterceptor) mTrackList).setDropListener(mDropListener);
-        mTrackList.setCacheColorHint(0);
+		taskList = getListView();
+        taskList.setOnCreateContextMenuListener(this);
+        ((TouchInterceptor) taskList).setDropListener(mDropListener);
+        ((TouchInterceptor) taskList).setRemoveListener(mRemoveListener);
+        taskList.setCacheColorHint(0);
 	}
+	
+	private void scrollBackToViewingTasks(int to, int firstVisiblePosition) {
+		
+		int total = taskList.getCount();
+		if (total > TOTAL_TASKS_IN_VIEW){
+			if(total -1 == to){
+				
+				getListView().setSelectionFromTop(total  - 6, 0);
+			} else {
+				getListView().setSelectionFromTop(firstVisiblePosition, 0);
+			}
+    	}
+	}
+	
+    private TouchInterceptor.RemoveListener mRemoveListener = new TouchInterceptor.RemoveListener() {
+    	
+        public void checkOff(int which) {
+        	
+        	ViewGroup item = (ViewGroup)taskList.getChildAt(which - taskList.getFirstVisiblePosition());
+        	TextView textView = (TextView)item.findViewById(R.id.text1);
+        	textView.getPaint().setStrikeThruText(true);
+        	
+        	Cursor cursor = (Cursor)getListAdapter().getItem(which);
+    		int rowId = Integer.parseInt(cursor.getString(cursor.getColumnIndex(TaskDatabaseAdapter.KEY_ROWID)));
+    		mTasksDatabaseHelper.updateStatus(rowId, true);
+    		
+    		if (!taskListCursor.requery()){
+    			
+    			int firstVisiblePosition = getFirstVisiblePostionBeforeRefresh();
+            	populateTasksList();
+            	scrollBackToViewingTasks(which, firstVisiblePosition);
+    		}
+        }
+        
+		private int getFirstVisiblePostionBeforeRefresh() {
+			
+			return taskList.getFirstVisiblePosition();
+		}
 
+		public void uncheckOff(int which) {
+
+        	ViewGroup item = (ViewGroup)taskList.getChildAt(which - taskList.getFirstVisiblePosition());
+        	TextView textView = (TextView)item.findViewById(R.id.text1);
+        	textView.getPaint().setStrikeThruText(false);
+		}
+    };
+
+//    private void removePlaylistItem(int which) {
+//        View v = mTrackList.getChildAt(which - mTrackList.getFirstVisiblePosition());
+//        try {
+//            if (MusicUtils.sService != null
+//                    && which != MusicUtils.sService.getQueuePosition()) {
+//                mDeletedOneRow = true;
+//            }
+//        } catch (RemoteException e) {
+//            // Service died, so nothing playing.
+//            mDeletedOneRow = true;
+//        }
+//        v.setVisibility(View.GONE);
+//        mTrackList.invalidateViews();
+//        if (mTrackCursor instanceof NowPlayingCursor) {
+//            ((NowPlayingCursor)mTrackCursor).removeItem(which);
+//        } else {
+//            int colidx = mTrackCursor.getColumnIndexOrThrow(
+//                    MediaStore.Audio.Playlists.Members._ID);
+//            mTrackCursor.moveToPosition(which);
+//            long id = mTrackCursor.getLong(colidx);
+//            Uri uri = MediaStore.Audio.Playlists.Members.getContentUri("external",
+//                    Long.valueOf(mPlaylist));
+//            getContentResolver().delete(
+//                    ContentUris.withAppendedId(uri, id), null, null);
+//        }
+//        v.setVisibility(View.VISIBLE);
+//        mTrackList.invalidateViews();
+//    }
+    
 	private void initDatabaseHelper() {
 		mTasksDatabaseHelper = new TaskDatabaseAdapter(this);
         mTasksDatabaseHelper.open();
@@ -266,6 +339,9 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
 	public void onCreateContextMenu(ContextMenu menu, View v,
 			ContextMenuInfo menuInfo) {
 		super.onCreateContextMenu(menu, v, menuInfo);
+		
+		Log.d(TAG, "onCreateContextMenu");
+		
 		menu.add(0, CONTEXT_MENU_EDIT_ID, 0, R.string.menu_edit);
 		menu.add(0, CONTEXT_MENU_DELETE_ID, 0, R.string.menu_delete);
 	}
@@ -296,8 +372,9 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
 	
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
-        super.onListItemClick(l, v, position, id);
-
+        
+    	super.onListItemClick(l, v, position, id);
+        
         TextView textView = (TextView)v.findViewById(R.id.text1);
         showRunTaskPanel(textView.getText().toString());
     }
@@ -307,39 +384,6 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
                                     Intent intent) {
         super.onActivityResult(requestCode, resultCode, intent);
         populateTasksList();
-    }
-    
-    static class TrackListAdapter extends SimpleCursorAdapter implements SectionIndexer {
-
-        private AlphabetIndexer mIndexer;
-        
-        TrackListAdapter(Context context, 
-                int layout, Cursor cursor, String[] from, int[] to) {
-        	
-            super(context, layout, cursor, from, to);
-        }
-        
-        @Override
-        public Cursor runQueryOnBackgroundThread(CharSequence constraint) {
-        	return super.runQueryOnBackgroundThread(constraint);
-        }
-        
-        public Object[] getSections() {
-            if (mIndexer != null) { 
-                return mIndexer.getSections();
-            } else {
-                return null;
-            }
-        }
-        
-        public int getPositionForSection(int section) {
-            int pos = mIndexer.getPositionForSection(section);
-            return pos;
-        }
-        
-        public int getSectionForPosition(int position) {
-            return 0;
-        }        
     }
     
     private TouchInterceptor.DropListener mDropListener = new TouchInterceptor.DropListener() {
@@ -362,22 +406,9 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
 			}
 		}
 
-		private void scrollBackToViewingTasks(int to, int firstVisiblePosition) {
-			
-			int total = mTrackList.getCount();
-			if (total > TOTAL_TASKS_IN_VIEW){
-				if(total -1 == to){
-					
-					getListView().setSelectionFromTop(total  - 6, 0);
-				} else {
-					getListView().setSelectionFromTop(firstVisiblePosition, 0);
-				}
-        	}
-		}
-
 		private int getFirstVisiblePostionBeforeRefresh() {
 			
-			return mTrackList.getFirstVisiblePosition();
+			return taskList.getFirstVisiblePosition();
 		}
 
 		private void move(int from, int to) {
@@ -393,7 +424,36 @@ public class PomodoroTasks extends ListActivity implements View.OnCreateContextM
 		}
     };
 
-	private MyCount counter;
+	private Cursor taskListCursor;
 
-	private ImageButton taskControlButton;
+    public class MyCount extends CountDownTimer{
+	    
+		public MyCount(long millisInFuture, long countDownInterval) {
+    		super(millisInFuture, countDownInterval);
+	    }
+	    
+	    @Override
+	    public void onFinish() {
+	    	
+	        MediaPlayer mp = MediaPlayer.create(getBaseContext(), R.raw.freesoundprojectdotorg_32568__erh__indian_brass_pestle);
+	        mp.start();
+	        
+	        vibrator.vibrate(1000); 
+	        
+	        while(mp.isPlaying()){
+	        	
+	        }
+	        
+	    	resetProgressControl(taskControlButton);
+	    }
+	    
+	    @Override
+	    public void onTick(long millisUntilFinished) {
+	    	
+	    	final DateFormat dateFormat = new SimpleDateFormat("mm:ss");
+            String timeStr = dateFormat.format(new Date(millisUntilFinished));
+	    	mTimeLeft.setText(timeStr);
+	    	progressBar.incrementProgressBy(1);
+	    }
+    }
 }
