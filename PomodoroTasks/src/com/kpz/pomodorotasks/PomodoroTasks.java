@@ -49,11 +49,11 @@ public class PomodoroTasks extends ListActivity {
 	
 	private static final int ACTIVITY_EDIT = 1;
 	
-	private static final int CONTEXT_MENU_EDIT_ID = Menu.FIRST;
-	private static final int CONTEXT_MENU_DELETE_ID = Menu.FIRST + 1;
-	
 	private static final int MAIN_MENU_DELETE_ALL_ID = Menu.FIRST;
-    
+
+	private static final int CONTEXT_MENU_EDIT_ID = Menu.FIRST + 10;
+	private static final int CONTEXT_MENU_DELETE_ID = CONTEXT_MENU_EDIT_ID + 1;
+	
     private ListView taskList;
     private TaskDatabaseAdapter mTasksDatabaseHelper;
     
