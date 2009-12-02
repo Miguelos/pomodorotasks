@@ -34,13 +34,14 @@ public class TaskDatabaseAdapter {
     public static final String KEY_STATUS = "status";
     public static final String[] SELECTION_KEYS = {KEY_ROWID, KEY_DESCRIPTION, KEY_SEQUENCE, KEY_STATUS};
     
-    enum Status_Type {
-    	COMPLETE("Completed"),
-    	OPEN("Open");
+    enum StatusType {
+    	
+    	OPEN("Open"),
+    	COMPLETED("Completed");
     	
     	private String description;
 
-		private Status_Type(String desc) {
+		private StatusType(String desc) {
     		this.setDescription(desc);
 		}
 
@@ -51,7 +52,17 @@ public class TaskDatabaseAdapter {
 		public String getDescription() {
 			return description;
 		}
+		
+		public static boolean isOpen(String statusDesc){
+			return OPEN.description.equals(statusDesc);
+		}
+		
+		public static boolean isCompleted(String statusDesc){
+			return COMPLETED.description.equals(statusDesc);
+		}
     };
+    
+    
     
     private DatabaseHelper mDbHelper;
     private SQLiteDatabase mDb;
@@ -181,7 +192,7 @@ public class TaskDatabaseAdapter {
 	public boolean updateStatus(int rowId, boolean completed) {
 
         ContentValues args = new ContentValues();
-        args.put(KEY_STATUS, completed ? Status_Type.COMPLETE.getDescription() : Status_Type.OPEN.getDescription());
+        args.put(KEY_STATUS, completed ? StatusType.COMPLETED.getDescription() : StatusType.OPEN.getDescription());
 
         return mDb.update(DATABASE_TABLE, args, KEY_ROWID + "=" + rowId, null) > 0;
 	}

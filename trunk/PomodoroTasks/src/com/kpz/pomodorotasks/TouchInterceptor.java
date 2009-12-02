@@ -48,14 +48,14 @@ public class TouchInterceptor extends ListView {
     private int mCoordOffset;  // the difference between screen coordinates and coordinates in this view
     private DragListener mDragListener;
     private DropListener mDropListener;
-    private RemoveListener mRemoveListener;
+    private CheckOffListener mCheckOffListener;
     private int mUpperBound;
     private int mLowerBound;
     private int mHeight;
     private GestureDetector mGestureDetector;
     private static final int FLING = 0;
     private static final int SLIDE = 1;
-    private int mRemoveMode = -1;
+    private int mCheckOffMode = -1;
     private Rect mTempRect = new Rect();
     private Bitmap mDragBitmap;
     private final int mTouchSlop;
@@ -75,14 +75,14 @@ public class TouchInterceptor extends ListView {
         Resources res = getResources();
         mItemHeightNormal = res.getDimensionPixelSize(R.dimen.normal_height);
         mItemHeightExpanded = res.getDimensionPixelSize(R.dimen.expanded_height);
-        mRemoveMode = FLING;
+        mCheckOffMode = FLING;
     }
     
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
     	
-        if (mRemoveListener != null && mGestureDetector == null) {
-            if (mRemoveMode == FLING) {
+        if (mCheckOffListener != null && mGestureDetector == null) {
+            if (mCheckOffMode == FLING) {
             	
                 mGestureDetector = new GestureDetector(getContext(), new SimpleOnGestureListener() {
                     @Override
@@ -103,7 +103,7 @@ public class TouchInterceptor extends ListView {
 
 								Log.d(TAG, "left to right");
 								stopDragging();
-								mRemoveListener.checkOff(itemnum);
+								mCheckOffListener.checkOff(itemnum);
 									unExpandViews(false);
 
 								return true;
@@ -112,7 +112,7 @@ public class TouchInterceptor extends ListView {
 
 								Log.d(TAG, "right to left");
 								stopDragging();
-								mRemoveListener.uncheckOff(itemnum);
+								mCheckOffListener.uncheckOff(itemnum);
 									unExpandViews(false);
 
 								return true;
@@ -314,8 +314,8 @@ public class TouchInterceptor extends ListView {
                     stopDragging();
                 
                     float expectedRightValue = r.right * 1/2;
-                    if (mRemoveMode == SLIDE && ev.getX() > expectedRightValue) {
-                    	if (mRemoveListener != null) {
+                    if (mCheckOffMode == SLIDE && ev.getX() > expectedRightValue) {
+                    	if (mCheckOffListener != null) {
                     		// Not implemented
                             //mRemoveListener.checkOff(mFirstDragPos);
                         }
@@ -402,7 +402,7 @@ public class TouchInterceptor extends ListView {
     }
     
     private void dragView(int x, int y) {
-        if (mRemoveMode == SLIDE) {
+        if (mCheckOffMode == SLIDE) {
             float alpha = 1.0f;
             int width = mDragView.getWidth();
             if (x > width / 2) {
@@ -435,8 +435,8 @@ public class TouchInterceptor extends ListView {
         mDropListener = l;
     }
     
-    public void setRemoveListener(RemoveListener l) {
-        mRemoveListener = l;
+    public void setCheckOffListener(CheckOffListener l) {
+        mCheckOffListener = l;
     }
 
     public interface DragListener {
@@ -445,7 +445,7 @@ public class TouchInterceptor extends ListView {
     public interface DropListener {
         void drop(int from, int to);
     }
-    public interface RemoveListener {
+    public interface CheckOffListener {
         void checkOff(int which);
 
 		void uncheckOff(int mFirstDragPos);

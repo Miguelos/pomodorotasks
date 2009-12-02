@@ -16,16 +16,39 @@ public class TaskEdit extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
     	super.onCreate(savedInstanceState);
-    	 
-    	mDbHelper = new TaskDatabaseAdapter(this);
-    	mDbHelper.open();
-    	 
     	setContentView(R.layout.task_edit);
-    	 
-    	mDescription = (EditText) findViewById(R.id.description);
-    	 
-    	Button confirmButton = (Button) findViewById(R.id.confirm);
-    	 
+    	
+    	initDatabaseConnection();
+    	populateTaskEditText(savedInstanceState);
+    	initDoneButton();
+    	initRevertButton();
+    }
+
+	private void initDoneButton() {
+		Button doneButton = (Button) findViewById(R.id.done);
+    	doneButton.setOnClickListener(new View.OnClickListener() {
+
+    	    public void onClick(View view) {
+    	    	saveState();
+    	        setResult(RESULT_OK);
+    	        finish();
+    	    }
+    	});
+	}
+
+	private void initRevertButton() {
+		Button revertButton = (Button) findViewById(R.id.revert);
+    	revertButton.setOnClickListener(new View.OnClickListener() {
+
+    	    public void onClick(View view) {
+    	        setResult(RESULT_OK);
+    	        finish();
+    	    }
+    	});
+	}
+	
+	private void populateTaskEditText(Bundle savedInstanceState) {
+		mDescription = (EditText) findViewById(R.id.description);
     	mRowId = savedInstanceState != null ? savedInstanceState.getLong(TaskDatabaseAdapter.KEY_ROWID) 
     	                                    : null;
     	if (mRowId == null) {
@@ -33,18 +56,13 @@ public class TaskEdit extends Activity {
     	    mRowId = extras != null ? extras.getLong(TaskDatabaseAdapter.KEY_ROWID)
     	                            : null;
     	}
-    	 
     	populateFields();
-    	 
-    	confirmButton.setOnClickListener(new View.OnClickListener() {
+	}
 
-    	    public void onClick(View view) {
-    	        setResult(RESULT_OK);
-    	        finish();
-    	    }
-    	     
-    	});
-    }
+	private void initDatabaseConnection() {
+		mDbHelper = new TaskDatabaseAdapter(this);
+    	mDbHelper.open();
+	}
     
     private void populateFields() {
         if (mRowId != null) {
@@ -60,19 +78,7 @@ public class TaskEdit extends Activity {
         super.onSaveInstanceState(outState);
         outState.putLong(TaskDatabaseAdapter.KEY_ROWID, mRowId);
     }
-    
-    @Override
-    protected void onPause() {
-        super.onPause();
-        saveState();
-    }
-    
-    @Override
-    protected void onResume() {
-        super.onResume();
-        populateFields();
-    }
-    
+
     private void saveState() {
         String description = mDescription.getText().toString();
 
