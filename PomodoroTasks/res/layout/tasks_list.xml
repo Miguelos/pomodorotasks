@@ -79,7 +79,7 @@
     <LinearLayout android:layout_width="wrap_content" 
         android:layout_height="wrap_content"
         android:baselineAligned="false"
-        android:background="@android:drawable/bottom_bar">
+        style="@android:style/ButtonBar">
 
 
         <EditText android:id="@+id/left_text_edit"

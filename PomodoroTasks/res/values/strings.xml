@@ -6,9 +6,12 @@
     <string name="menu_edit">Edit</string>
     <string name="menu_delete">Delete</string>
     <string name="menu_delete_all">Empty</string>
+    <string name="menu_complete">Complete</string>
+    <string name="menu_reopen">Re-Open</string>
     
     <string name="description">Task</string>
-    <string name="confirm">Save</string>
+    <string name="done">Done</string>
+    <string name="revert">Revert</string>
     <string name="edit_task">Edit Task</string>
     <string name="add_button">Add</string>
     
