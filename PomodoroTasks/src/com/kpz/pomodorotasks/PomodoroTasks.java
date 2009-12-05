@@ -10,8 +10,9 @@ import android.database.Cursor;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Handler;
+import android.os.Message;
 import android.os.Vibrator;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -24,7 +25,6 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
@@ -61,7 +61,9 @@ public class PomodoroTasks extends ListActivity {
 	private MyCount counter;
 	private ImageButton taskControlButton;
 	private Vibrator vibrator;
-    
+	private Cursor taskListCursor;
+	private LinearLayout runTaskPanel;
+	
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -80,13 +82,12 @@ public class PomodoroTasks extends ListActivity {
     
 	private void initRunTaskPanel() {
 		
-    	RelativeLayout runTaskPanel = (RelativeLayout)findViewById(R.id.runTaskPanel);
+		runTaskPanel = (LinearLayout)findViewById(R.id.runTaskPanel);
 		runTaskPanel.setVisibility(View.GONE);
 	}
 
 	private void showRunTaskPanel(String taskDescription) {
 		
-		RelativeLayout runTaskPanel = (RelativeLayout)findViewById(R.id.runTaskPanel);
 		runTaskPanel.setVisibility(View.VISIBLE);
 		
 		taskControlButton = (ImageButton) findViewById(R.id.control_icon);
@@ -97,11 +98,8 @@ public class PomodoroTasks extends ListActivity {
 
     	totalTime = 10;
     	progressBar = (ProgressBar) findViewById(R.id.progress_horizontal);
-    	progressBar.setMax(totalTime - 1);
+    	progressBar.setMax(totalTime);
 
-    	//progressBar.setv = defaultButtonHeight;
-    	//populateFields();
-    	
     	resetTaskRun(taskControlButton);
     	
     	taskControlButton.setOnClickListener(new View.OnClickListener() {
@@ -114,7 +112,8 @@ public class PomodoroTasks extends ListActivity {
     	    		
     	    	} else {
     	    		
-    	    		counter = new MyCount(totalTime * ONE_SEC, ONE_SEC);
+    	    		counter = new MyCount(totalTime * ONE_SEC, ONE_SEC, beepHandler);
+    	    		//counter = new ProgressThread(handler);
         	        counter.start();
         	        
         	        taskControlButton.setImageResource(R.drawable.ic_media_pause);
@@ -164,9 +163,8 @@ public class PomodoroTasks extends ListActivity {
         // and an array of the fields we want to bind those fields to (in this case just text1)
         int[] to = new int[]{R.id.text1, R.id.taskRow};
         
-        SimpleCursorAdapter tasks = new SimpleCursorAdapter(getApplication(), R.layout.tasks_row, tasksCursor, from, to);
-        
-        tasks.setViewBinder(new ViewBinder() {
+        SimpleCursorAdapter taskListCursorAdapter = new SimpleCursorAdapter(getApplication(), R.layout.tasks_row, tasksCursor, from, to);
+        taskListCursorAdapter.setViewBinder(new ViewBinder() {
 			
 			public boolean setViewValue(View view, Cursor cursor, int columnIndex) {
 				
@@ -188,8 +186,8 @@ public class PomodoroTasks extends ListActivity {
 			}
 		});
         
-        setListAdapter(tasks);
-        taskListCursor = tasks.getCursor();
+        setListAdapter(taskListCursorAdapter);
+        taskListCursor = taskListCursorAdapter.getCursor();
     }
 
 	private void initTasksListViewContainer() {
@@ -327,7 +325,6 @@ public class PomodoroTasks extends ListActivity {
 			ContextMenuInfo menuInfo) {
 		super.onCreateContextMenu(menu, v, menuInfo);
 		
-		Log.d(TAG, "onCreateContextMenu");
     	Cursor cursor = (Cursor)getListAdapter().getItem(new Long(((AdapterContextMenuInfo)menuInfo).position).intValue());
 		String status = cursor.getString(cursor.getColumnIndex(TaskDatabaseAdapter.KEY_STATUS));
 		
@@ -433,18 +430,11 @@ public class PomodoroTasks extends ListActivity {
 		}
     };
 
-	private Cursor taskListCursor;
+    // Define the Handler that receives messages from the thread and update the progress
+    final Handler beepHandler = new Handler() {
+        public void handleMessage(Message msg) {
 
-    public class MyCount extends CountDownTimer{
-	    
-		public MyCount(long millisInFuture, long countDownInterval) {
-    		super(millisInFuture, countDownInterval);
-	    }
-	    
-	    @Override
-	    public void onFinish() {
-	    	
-	        MediaPlayer mp = MediaPlayer.create(getBaseContext(), R.raw.freesoundprojectdotorg_32568__erh__indian_brass_pestle);
+    		MediaPlayer mp = MediaPlayer.create(getBaseContext(), R.raw.freesoundprojectdotorg_32568__erh__indian_brass_pestle);
 	        mp.start();
 	        
 	        vibrator.vibrate(1000); 
@@ -454,15 +444,50 @@ public class PomodoroTasks extends ListActivity {
 	        }
 	        
 	    	resetProgressControl(taskControlButton);
-	    }
+        }
+    };
+	
+    public class MyCount extends CountDownTimer{
 	    
-	    @Override
+		private Handler mHandler;
+
+	    public MyCount(long millisInFuture, long countDownInterval, Handler handler) {
+	    	super(millisInFuture + ONE_SEC, countDownInterval);
+	    	this.mHandler = handler;
+		}
+
+		@Override
 	    public void onTick(long millisUntilFinished) {
 	    	
-	    	final DateFormat dateFormat = new SimpleDateFormat("mm:ss");
-            String timeStr = dateFormat.format(new Date(millisUntilFinished));
-	    	mTimeLeft.setText(timeStr);
-	    	progressBar.incrementProgressBy(1);
+	    	incrementProgress(millisUntilFinished);
 	    }
+
+		private void incrementProgress(long millisUntilFinished) {
+			
+			final DateFormat dateFormat = new SimpleDateFormat("mm:ss");
+            String timeStr = dateFormat.format(new Date(millisUntilFinished - ONE_SEC));
+            mTimeLeft.setText(timeStr);
+           	progressBar.incrementProgressBy(1);
+           	
+           	if (timeStr.equals("00:00")){
+           		beep();
+    	    	endTimer();
+           	}
+		}
+
+		private void beep() {
+			Message msg = mHandler.obtainMessage();
+			Bundle emptyBundle = new Bundle();
+			msg.setData(emptyBundle);
+			mHandler.sendMessage(msg);
+		}
+		
+		private void endTimer() {
+			cancel();
+		}
+		@Override
+		public void onFinish() {
+			// do nothing
+		}
     }
 }
