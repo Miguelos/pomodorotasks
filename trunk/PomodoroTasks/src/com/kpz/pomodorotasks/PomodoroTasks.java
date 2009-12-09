@@ -40,9 +40,11 @@ public class PomodoroTasks extends ListActivity {
 	private static final int TOTAL_TASKS_IN_VIEW = 6;
 	
 	private static final int ACTIVITY_EDIT = 1;
+	private static final int ACTIVITY_SET_OPTIONS = 2;
 	
 	private static final int MAIN_MENU_DELETE_ALL_ID = Menu.FIRST;
-
+	private static final int MAIN_MENU_OPTIONS_ID = MAIN_MENU_DELETE_ALL_ID + 1;
+	
 	private static final int CONTEXT_MENU_EDIT_ID = Menu.FIRST + 10;
 	private static final int CONTEXT_MENU_DELETE_ID = CONTEXT_MENU_EDIT_ID + 1;
 	private static final int CONTEXT_MENU_COMPLETE_ID = CONTEXT_MENU_EDIT_ID + 2;
@@ -54,7 +56,7 @@ public class PomodoroTasks extends ListActivity {
 	private static final int ONE_SEC = 1000;
 
 	private TextView mTaskDescription;
-	private ProgressBar progressBar;
+	private ProgressBar mProgressBar;
 	private TextView mTimeLeft;
 	private int totalTime;
 
@@ -95,23 +97,23 @@ public class PomodoroTasks extends ListActivity {
     	mTaskDescription = (TextView) findViewById(R.id.task_description);
     	mTaskDescription.setText(taskDescription);
     	mTimeLeft = (TextView) findViewById(R.id.time_left);
-
-    	totalTime = 10;
-    	progressBar = (ProgressBar) findViewById(R.id.progress_horizontal);
-    	progressBar.setMax(totalTime);
+    	mProgressBar = (ProgressBar) findViewById(R.id.progress_horizontal);
 
     	resetTaskRun(taskControlButton);
     	
     	taskControlButton.setOnClickListener(new View.OnClickListener() {
 
     	    public void onClick(View view) {
-    	    	
+
+    	    	totalTime = mTasksDatabaseHelper.fetchTaskDurationSetting() * 60;
+	    		mProgressBar.setMax(totalTime);
+	    		
     	    	if (counter != null && taskControlButton.getTag(R.string.TASK_CONTROL_BUTTON_STATE_TYPE).equals(R.string.TO_STOP_STATE)){
     	    		
     	    		resetTaskRun(taskControlButton);
     	    		
     	    	} else {
-    	    		
+
     	    		counter = new MyCount(totalTime * ONE_SEC, ONE_SEC, beepHandler);
     	    		//counter = new ProgressThread(handler);
         	        counter.start();
@@ -135,7 +137,7 @@ public class PomodoroTasks extends ListActivity {
 
 	private void resetProgressControl(final ImageButton taskControlButton) {
 		mTimeLeft.setText(R.string.zeroTime);
-		progressBar.setProgress(0);
+		mProgressBar.setProgress(0);
         taskControlButton.setImageResource(R.drawable.ic_media_play);
         taskControlButton.setTag(R.string.TASK_CONTROL_BUTTON_STATE_TYPE, R.string.TO_PLAY_STATE);
         adjustHeightToDefault(taskControlButton);
@@ -304,6 +306,7 @@ public class PomodoroTasks extends ListActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
         menu.add(0, MAIN_MENU_DELETE_ALL_ID, 0, R.string.menu_delete_all);
+        menu.add(0, MAIN_MENU_OPTIONS_ID, 0, R.string.menu_options);
         return true;
     }
 
@@ -315,6 +318,11 @@ public class PomodoroTasks extends ListActivity {
         	mTasksDatabaseHelper.deleteAll();
 	        populateTasksList();
         	return true;
+        	
+        case MAIN_MENU_OPTIONS_ID:
+        	Intent i = new Intent(this, OptionsSet.class);
+	        startActivityForResult(i, ACTIVITY_SET_OPTIONS);
+        	return true;        	
         }
        
         return super.onMenuItemSelected(featureId, item);
@@ -467,7 +475,7 @@ public class PomodoroTasks extends ListActivity {
 			final DateFormat dateFormat = new SimpleDateFormat("mm:ss");
             String timeStr = dateFormat.format(new Date(millisUntilFinished - ONE_SEC));
             mTimeLeft.setText(timeStr);
-           	progressBar.incrementProgressBy(1);
+           	mProgressBar.incrementProgressBy(1);
            	
            	if (timeStr.equals("00:00")){
            		beep();
