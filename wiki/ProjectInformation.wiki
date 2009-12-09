@@ -5,4 +5,11 @@ An Android app to manage tasks using Pomodoro Technique (http://www.pomodorotech
 
 = Project Status =
 
-As of 11/21/2009, the project is in the initial stages of development. I am currently using Google Tasks to manange the tasks, but as the list of pending tasks are growing, I am looking at using an agile project management tool.
+Under Development
+
+= Misc. Information =
+
+URL to generate QR code:
+
+http://chart.apis.google.com/chart?cht=qr&chs=350x350&chl=http%3A%2F%2Fpomodorotasks.googlecode.com%2Ffiles%2FPomodoroTasks.apk
+
