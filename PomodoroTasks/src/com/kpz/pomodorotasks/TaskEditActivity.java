@@ -7,7 +7,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
-public class TaskEdit extends Activity {
+public class TaskEditActivity extends Activity {
 
 	private EditText mDescription;
     private Long mRowId;

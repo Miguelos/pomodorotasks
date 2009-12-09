@@ -8,7 +8,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 
-public class OptionsSet extends Activity {
+public class SettingsActivity extends Activity {
 
     private TaskDatabaseAdapter mDbHelper;
 	private SeekBar mSeekBar;
@@ -22,8 +22,11 @@ public class OptionsSet extends Activity {
     	
     	initDatabaseConnection();
     	initBackButton();
+    	initTimeDurationSetting();
+    }
 
-    	mDurationText = (TextView)findViewById(R.id.duration);
+	private void initTimeDurationSetting() {
+		mDurationText = (TextView)findViewById(R.id.duration);
         mSeekBar = (SeekBar)findViewById(R.id.seek);
         mDuration = mDbHelper.fetchTaskDurationSetting();
         mDurationText.setText(mDuration + " min");
@@ -42,7 +45,7 @@ public class OptionsSet extends Activity {
             public void onStopTrackingTouch(SeekBar seekBar) {
             }
 		});
-    }
+	}
 
 	private void initBackButton() {
 		Button revertButton = (Button) findViewById(R.id.back);

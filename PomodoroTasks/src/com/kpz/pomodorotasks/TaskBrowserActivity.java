@@ -32,10 +32,10 @@ import android.widget.SimpleCursorAdapter.ViewBinder;
 
 import com.kpz.pomodorotasks.TaskDatabaseAdapter.StatusType;
 
-public class PomodoroTasks extends ListActivity {
+public class TaskBrowserActivity extends ListActivity {
     
 
-	public static final String TAG = "PomodoroTasks";
+	private static final String LOG_TAG = "PomodoroTasks";
 	
 	private static final int TOTAL_TASKS_IN_VIEW = 6;
 	
@@ -44,22 +44,21 @@ public class PomodoroTasks extends ListActivity {
 	
 	private static final int MAIN_MENU_DELETE_ALL_ID = Menu.FIRST;
 	private static final int MAIN_MENU_OPTIONS_ID = MAIN_MENU_DELETE_ALL_ID + 1;
+	private static final int MAIN_MENU_DELETED_COMPLETED_ID = MAIN_MENU_DELETE_ALL_ID + 2;
 	
 	private static final int CONTEXT_MENU_EDIT_ID = Menu.FIRST + 10;
 	private static final int CONTEXT_MENU_DELETE_ID = CONTEXT_MENU_EDIT_ID + 1;
 	private static final int CONTEXT_MENU_COMPLETE_ID = CONTEXT_MENU_EDIT_ID + 2;
 	private static final int CONTEXT_MENU_REOPEN_ID = CONTEXT_MENU_EDIT_ID + 3;
 	
-    private ListView taskList;
-    private TaskDatabaseAdapter mTasksDatabaseHelper;
+	private static final int ONE_SEC = 1000;	
     
-	private static final int ONE_SEC = 1000;
-
+	private ListView taskList;
+    private TaskDatabaseAdapter mTasksDatabaseHelper;
 	private TextView mTaskDescription;
 	private ProgressBar mProgressBar;
 	private TextView mTimeLeft;
 	private int totalTime;
-
 	private MyCount counter;
 	private ImageButton taskControlButton;
 	private Vibrator vibrator;
@@ -305,6 +304,7 @@ public class PomodoroTasks extends ListActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
+        menu.add(0, MAIN_MENU_DELETED_COMPLETED_ID, 0, R.string.menu_delete_completed);
         menu.add(0, MAIN_MENU_DELETE_ALL_ID, 0, R.string.menu_delete_all);
         menu.add(0, MAIN_MENU_OPTIONS_ID, 0, R.string.menu_options);
         return true;
@@ -314,13 +314,18 @@ public class PomodoroTasks extends ListActivity {
     public boolean onMenuItemSelected(int featureId, MenuItem item) {
         switch(item.getItemId()) {
 
+        case MAIN_MENU_DELETED_COMPLETED_ID:
+        	mTasksDatabaseHelper.deleteCompleted();
+	        populateTasksList();
+        	return true;
+        	
         case MAIN_MENU_DELETE_ALL_ID:
         	mTasksDatabaseHelper.deleteAll();
 	        populateTasksList();
         	return true;
         	
         case MAIN_MENU_OPTIONS_ID:
-        	Intent i = new Intent(this, OptionsSet.class);
+        	Intent i = new Intent(this, SettingsActivity.class);
 	        startActivityForResult(i, ACTIVITY_SET_OPTIONS);
         	return true;        	
         }
@@ -360,7 +365,7 @@ public class PomodoroTasks extends ListActivity {
     	switch(item.getItemId()) {
 		case CONTEXT_MENU_EDIT_ID:
 
-			Intent i = new Intent(this, TaskEdit.class);
+			Intent i = new Intent(this, TaskEditActivity.class);
 	        i.putExtra(TaskDatabaseAdapter.KEY_ROWID, rowId);
 	        startActivityForResult(i, ACTIVITY_EDIT);
 	        return true;
