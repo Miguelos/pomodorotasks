@@ -77,7 +77,7 @@
         	android:layout_weight="1"
         	android:text=""/>
         	
-    <LinearLayout android:layout_width="wrap_content" 
+    <LinearLayout android:layout_width="fill_parent" 
         android:layout_height="wrap_content"
         android:baselineAligned="false"
         style="@android:style/ButtonBar">

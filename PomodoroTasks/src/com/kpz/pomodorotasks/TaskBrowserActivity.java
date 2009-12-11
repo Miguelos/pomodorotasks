@@ -199,17 +199,21 @@ public class TaskBrowserActivity extends ListActivity {
         taskList.setCacheColorHint(0);
 	}
 	
-	private void scrollBackToViewingTasks(int to, int firstVisiblePosition) {
+	private void scrollBackToViewingTasks(int to, int firstVisiblePosition, int lastVisiblePosition) {
 		
-		int total = taskList.getCount();
-		if (total > TOTAL_TASKS_IN_VIEW){
-			if(total -1 == to){
-				
-				getListView().setSelectionFromTop(total  - 6, 0);
-			} else {
-				getListView().setSelectionFromTop(firstVisiblePosition, 0);
-			}
-    	}
+//		int total = taskList.getCount();
+//		
+//		Log.d(LOG_TAG, "last visible pos:" + lastVisiblePosition);
+//		Log.d(LOG_TAG, "first visible pos:" + firstVisiblePosition);
+//		Log.d(LOG_TAG, "count:" + taskList.getCount());
+//		if (total > TOTAL_TASKS_IN_VIEW){
+//			if(total -1 == to){
+//				
+//				getListView().setSelectionFromTop(total  - 6, 0);
+//			} else {
+//				getListView().setSelectionFromTop(firstVisiblePosition, 0);
+//			}
+//    	}
 	}
 	
 	public void checkOffTask(int which, View targetView) {
@@ -220,16 +224,15 @@ public class TaskBrowserActivity extends ListActivity {
     	Cursor cursor = (Cursor)getListAdapter().getItem(which);
 		int rowId = Integer.parseInt(cursor.getString(cursor.getColumnIndex(TaskDatabaseAdapter.KEY_ROWID)));
 		mTasksDatabaseHelper.updateStatus(rowId, true);
-		
-		if (!taskListCursor.requery()){
-			
-			int firstVisiblePosition = getFirstVisiblePostionBeforeRefresh();
-        	populateTasksList();
-        	scrollBackToViewingTasks(which, firstVisiblePosition);
-		}
+		refreshTasksList();
 	}
 	
-    public void uncheckOffTask(int which, View targetView) {
+    private boolean refreshTasksList() {
+    	
+    	return taskListCursor.requery();
+	}
+
+	public void uncheckOffTask(int which, View targetView) {
 
     	TextView textView = (TextView)targetView.findViewById(R.id.text1);
     	textView.getPaint().setStrikeThruText(false);
@@ -237,20 +240,8 @@ public class TaskBrowserActivity extends ListActivity {
     	Cursor cursor = (Cursor)getListAdapter().getItem(which);
 		int rowId = Integer.parseInt(cursor.getString(cursor.getColumnIndex(TaskDatabaseAdapter.KEY_ROWID)));
 		mTasksDatabaseHelper.updateStatus(rowId, false);
-		
-		if (!taskListCursor.requery()){
-			
-			int firstVisiblePosition = getFirstVisiblePostionBeforeRefresh();
-        	populateTasksList();
-        	scrollBackToViewingTasks(which, firstVisiblePosition);
-		}
+		refreshTasksList();
 	}
-	
-	private int getFirstVisiblePostionBeforeRefresh() {
-		
-		return taskList.getFirstVisiblePosition();
-	}
-
 	
     private TouchInterceptor.CheckOffListener mCheckOffListener = new TouchInterceptor.CheckOffListener() {
     	
@@ -280,13 +271,13 @@ public class TaskBrowserActivity extends ListActivity {
         	public void onClick(View v) {
  
             	createNewTask(leftTextEdit);
-                populateTasksList();
+                refreshTasksList();
                 resetAddTaskEntryDisplay(leftTextEdit);
             }
 
 			private void resetAddTaskEntryDisplay(final EditText leftTextEdit) {
 				leftTextEdit.setText("");
-
+				leftTextEdit.requestFocus();
 // to hide keyboard				
 //                ((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(leftTextEdit.getWindowToken(), 0); 
 // to display on-screen keyboard                 
@@ -316,12 +307,12 @@ public class TaskBrowserActivity extends ListActivity {
 
         case MAIN_MENU_DELETED_COMPLETED_ID:
         	mTasksDatabaseHelper.deleteCompleted();
-	        populateTasksList();
+	        refreshTasksList();
         	return true;
         	
         case MAIN_MENU_DELETE_ALL_ID:
         	mTasksDatabaseHelper.deleteAll();
-	        populateTasksList();
+	        refreshTasksList();
         	return true;
         	
         case MAIN_MENU_OPTIONS_ID:
@@ -373,7 +364,7 @@ public class TaskBrowserActivity extends ListActivity {
 		case CONTEXT_MENU_DELETE_ID:
     		
 	        mTasksDatabaseHelper.delete(rowId);
-	        populateTasksList();
+	        refreshTasksList();
 	        return true;
 	        
 		case CONTEXT_MENU_COMPLETE_ID:
@@ -402,7 +393,7 @@ public class TaskBrowserActivity extends ListActivity {
     protected void onActivityResult(int requestCode, int resultCode, 
                                     Intent intent) {
         super.onActivityResult(requestCode, resultCode, intent);
-        populateTasksList();
+        refreshTasksList();
     }
     
     private TouchInterceptor.DropListener mDropListener = new TouchInterceptor.DropListener() {
@@ -410,11 +401,12 @@ public class TaskBrowserActivity extends ListActivity {
     	public void drop(int from, int to) {
 
     		move(from, to);
-        	int firstVisiblePosition = getFirstVisiblePostionBeforeRefresh();        	
-        	populateTasksList();
-        	
+        	int firstVisiblePosition = getFirstVisiblePostionBeforeRefresh(); 
+        	int lastVisiblePosition = taskList.getLastVisiblePosition();
         	resetBottomMargin();
-        	scrollBackToViewingTasks(to, firstVisiblePosition);
+        	refreshTasksList();
+
+        	//scrollBackToViewingTasks(to, firstVisiblePosition, lastVisiblePosition);
         }
 
 		private void resetBottomMargin() {
