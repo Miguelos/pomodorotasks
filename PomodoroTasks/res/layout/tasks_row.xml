@@ -13,6 +13,7 @@
         android:background="@android:drawable/divider_horizontal_dark" />
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/taskRow_innerLayout"
         android:layout_width="fill_parent"
         android:layout_height="64dip"
         android:gravity="center_vertical"

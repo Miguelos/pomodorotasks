@@ -37,8 +37,6 @@ public class TaskBrowserActivity extends ListActivity {
 
 	private static final String LOG_TAG = "PomodoroTasks";
 	
-	private static final int TOTAL_TASKS_IN_VIEW = 6;
-	
 	private static final int ACTIVITY_EDIT = 1;
 	private static final int ACTIVITY_SET_OPTIONS = 2;
 	

@@ -242,23 +242,28 @@ public class TouchInterceptor extends ListView {
      * below the current insertpoint.
      */
     private void doExpansion() {
-        int childnum = mDragPos - getFirstVisiblePosition();
-        if (mDragPos > mFirstDragPos) {
-            childnum++;
-        }
-        
+        int itemRightBelowDragPos = mDragPos - getFirstVisiblePosition();
         int total = getCount();
-        View first = getChildAt(mFirstDragPos - getFirstVisiblePosition());
-        for (int i = 0;; i++) {
-        	
-            View vv = getChildAt(i);
-            if (vv == null) {
+        if (mDragPos > mFirstDragPos && mDragPos != total - 1) {
+            itemRightBelowDragPos++;
+        }
+		Log.d(TAG, "begin mDragPos:" + mDragPos + " total:" + total + " getFirstVisiblePosition:" + getFirstVisiblePosition() + " rightBelow:" + itemRightBelowDragPos);
+
+        View itemBeingDragged = getChildAt(mFirstDragPos - getFirstVisiblePosition());
+        for (int currentNodePos = 0;; currentNodePos++) {
+
+        	Log.d(TAG, "currentNodePos:" + currentNodePos);  
+
+        	int gravity = Gravity.BOTTOM;
+            View currentNode = getChildAt(currentNodePos);
+            if (currentNode == null) {
+            	Log.d(TAG, "break total:" + currentNodePos); 
                 break;
             }
             int height = mItemHeightNormal;
             int visibility = View.VISIBLE;
             
-            if (vv.equals(first)) {
+            if (currentNode.equals(itemBeingDragged)) {
                 // processing the item that is being dragged
                 if (mDragPos == mFirstDragPos) {
                     // hovering over the original location
@@ -267,12 +272,16 @@ public class TouchInterceptor extends ListView {
                     // not hovering over it
                     height = 1;
                 }
-            } else if (i == childnum) {
-            	
-            	if (i == 6 && getLastVisiblePosition() == total - 1){
-            		
-            		makeRoomAtListBottom(vv);
-            		
+            } else if (currentNodePos == itemRightBelowDragPos) {
+
+        		Log.d(TAG, "before condition i:" + currentNodePos + " total:" + total + " last:" + getLastVisiblePosition());
+        		
+        		if (mDragPos == total - 1){	
+        		
+            		Log.d(TAG, "in condition");
+            		height = mItemHeightExpanded;
+            		gravity = Gravity.TOP;
+					
             	} else {
             	
 	                if (mDragPos < getCount() - 1) {
@@ -281,11 +290,13 @@ public class TouchInterceptor extends ListView {
             	}
             }	
             
-            ViewGroup.LayoutParams params = vv.getLayoutParams();
+            ViewGroup.LayoutParams params = currentNode.getLayoutParams();
             params.height = height;
-
-            vv.setLayoutParams(params);
-            vv.setVisibility(visibility);
+            currentNode.setLayoutParams(params);
+            currentNode.setVisibility(visibility);
+            
+            LinearLayout layout = (LinearLayout)currentNode.findViewById(R.id.taskRow);
+            layout.setGravity(gravity);
         }
     }
 
