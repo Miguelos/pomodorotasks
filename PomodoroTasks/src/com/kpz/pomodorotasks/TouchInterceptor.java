@@ -22,7 +22,6 @@ import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -38,7 +37,9 @@ import android.widget.ListView;
 
 public class TouchInterceptor extends ListView {
     
-    private static final String TAG = "PomodoroTasks";
+    private static final int HIGHER_BOUND_SPEED = 16;
+	private static final int LOWER_BOUND_SPEED = 2;
+	private static final String TAG = "PomodoroTasks";
 	private ImageView mDragView;
     private WindowManager mWindowManager;
     private WindowManager.LayoutParams mWindowParams;
@@ -90,7 +91,7 @@ public class TouchInterceptor extends ListView {
                             float velocityY) {
 
                     	int itemnum = pointToPosition((int)e1.getX(), (int)e1.getY());
-                    	Log.d(TAG, "touch interceptor onFling itemnum: " + itemnum + " ; velocityX:" + velocityX + " ; ev2.getX():" + e2.getX() + " ; e1.getX():" + e1.getX());
+                    	//Log.d(TAG, "touch interceptor onFling itemnum: " + itemnum + " ; velocityX:" + velocityX + " ; ev2.getX():" + e2.getX() + " ; e1.getX():" + e1.getX());
 
 						if (itemnum != INVALID_POSITION && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
 
@@ -101,7 +102,7 @@ public class TouchInterceptor extends ListView {
 
 							if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE) {
 
-								Log.d(TAG, "left to right");
+								//Log.d(TAG, "left to right");
 								stopDragging();
 								mCheckOffListener.checkOff(itemnum);
 									unExpandViews(false);
@@ -110,7 +111,7 @@ public class TouchInterceptor extends ListView {
 
 							} else if (e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE) {
 
-								Log.d(TAG, "right to left");
+								//Log.d(TAG, "right to left");
 								stopDragging();
 								mCheckOffListener.uncheckOff(itemnum);
 									unExpandViews(false);
@@ -241,23 +242,26 @@ public class TouchInterceptor extends ListView {
      * If the dragged item is not on screen, only expand the item
      * below the current insertpoint.
      */
-    private void doExpansion() {
+    private boolean doExpansion() {
+    	
+    	boolean isExpanded = false;
+    	
         int itemRightBelowDragPos = mDragPos - getFirstVisiblePosition();
         int total = getCount();
         if (mDragPos > mFirstDragPos && mDragPos != total - 1) {
             itemRightBelowDragPos++;
         }
-		Log.d(TAG, "begin mDragPos:" + mDragPos + " total:" + total + " getFirstVisiblePosition:" + getFirstVisiblePosition() + " rightBelow:" + itemRightBelowDragPos);
+		//Log.d(TAG, "begin mDragPos:" + mDragPos + " total:" + total + " getFirstVisiblePosition:" + getFirstVisiblePosition() + " rightBelow:" + itemRightBelowDragPos);
 
         View itemBeingDragged = getChildAt(mFirstDragPos - getFirstVisiblePosition());
         for (int currentNodePos = 0;; currentNodePos++) {
 
-        	Log.d(TAG, "currentNodePos:" + currentNodePos);  
+        	//Log.d(TAG, "currentNodePos:" + currentNodePos);  
 
         	int gravity = Gravity.BOTTOM;
             View currentNode = getChildAt(currentNodePos);
             if (currentNode == null) {
-            	Log.d(TAG, "break total:" + currentNodePos); 
+            	//Log.d(TAG, "break total:" + currentNodePos); 
                 break;
             }
             int height = mItemHeightNormal;
@@ -274,20 +278,13 @@ public class TouchInterceptor extends ListView {
                 }
             } else if (currentNodePos == itemRightBelowDragPos) {
 
-        		Log.d(TAG, "before condition i:" + currentNodePos + " total:" + total + " last:" + getLastVisiblePosition());
-        		
         		if (mDragPos == total - 1){	
         		
-            		Log.d(TAG, "in condition");
-            		height = mItemHeightExpanded;
             		gravity = Gravity.TOP;
-					
-            	} else {
+            	} 
             	
-	                if (mDragPos < getCount() - 1) {
-	                    height = mItemHeightExpanded;
-	                }
-            	}
+                height = mItemHeightExpanded;
+                isExpanded = true;
             }	
             
             ViewGroup.LayoutParams params = currentNode.getLayoutParams();
@@ -298,14 +295,10 @@ public class TouchInterceptor extends ListView {
             LinearLayout layout = (LinearLayout)currentNode.findViewById(R.id.taskRow);
             layout.setGravity(gravity);
         }
+        
+        return isExpanded;
     }
 
-	private void makeRoomAtListBottom(View vv) {
-		LinearLayout.LayoutParams viewGroupParams = (LinearLayout.LayoutParams)getLayoutParams();
-		viewGroupParams.bottomMargin = vv.getHeight();
-		setLayoutParams(viewGroupParams);
-	}
-    
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
     	
@@ -341,29 +334,41 @@ public class TouchInterceptor extends ListView {
                     
                 case MotionEvent.ACTION_DOWN:
                 case MotionEvent.ACTION_MOVE:
-                    int x = (int) ev.getX();
+                	int x = (int) ev.getX();
                     int y = (int) ev.getY();
                     dragView(x, y);
                     int itemnum = getItemForPosition(y);
                     if (itemnum >= 0) {
-                        if (action == MotionEvent.ACTION_DOWN || itemnum != mDragPos) {
+
+                    	boolean isAnyItemExpanded = false;
+                    	if (action == MotionEvent.ACTION_DOWN || itemnum != mDragPos) {
                             if (mDragListener != null) {
                                 mDragListener.drag(mDragPos, itemnum);
                             }
                             mDragPos = itemnum;
                             
-                            doExpansion();
+							isAnyItemExpanded = doExpansion();
+                            
                         }
+                        
+                        
                         int speed = 0;
                         adjustScrollBounds(y);
+                        
+                        if (y < mUpperBound && isAnyItemExpanded){
+                        	// do not scroll up when item is dragged is upwards and an adjacent has already made space.
+                        	break;
+                        }
+                        
                         if (y > mLowerBound) {
-                            // scroll the list up a bit
-                            speed = y > (mHeight + mLowerBound) / 2 ? 16 : 4;
-                        } else if (y < mUpperBound) {
                             // scroll the list down a bit
-                            speed = y < mUpperBound / 2 ? -16 : -4;
+                            speed = y > (mHeight + mLowerBound) / 2 ? HIGHER_BOUND_SPEED : LOWER_BOUND_SPEED;
+                        } else if (y < mUpperBound) {
+                            // scroll the list up a bit
+                            speed = y < mUpperBound / 2 ? -HIGHER_BOUND_SPEED : -LOWER_BOUND_SPEED;
                         }
                         if (speed != 0) {
+                        	
                             int ref = pointToPosition(0, mHeight / 2);
                             if (ref == AdapterView.INVALID_POSITION) {
                                 //we hit a divider or an invisible view, check somewhere else
@@ -373,6 +378,15 @@ public class TouchInterceptor extends ListView {
                             if (v!= null) {
                                 int pos = v.getTop();
                                 setSelectionFromTop(ref, pos - speed);
+                            } else {
+                            	// just scroll.. for heaven's sake.
+                            	if (y > mLowerBound){
+                            		// scroll by one item down
+                            		if (getChildAt(1) != null){
+                            			setSelectionFromTop(1, 0);
+                            		}
+                            	}
+                            	
                             }
                         }
                     }

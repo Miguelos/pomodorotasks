@@ -6,6 +6,7 @@ import java.util.Date;
 
 import android.app.ListActivity;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.media.MediaPlayer;
 import android.os.Bundle;
@@ -13,6 +14,7 @@ import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Vibrator;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -197,21 +199,17 @@ public class TaskBrowserActivity extends ListActivity {
         taskList.setCacheColorHint(0);
 	}
 	
-	private void scrollBackToViewingTasks(int to, int firstVisiblePosition, int lastVisiblePosition) {
+	@Override
+	protected void onResume() {
+		super.onResume();
 		
-//		int total = taskList.getCount();
-//		
-//		Log.d(LOG_TAG, "last visible pos:" + lastVisiblePosition);
-//		Log.d(LOG_TAG, "first visible pos:" + firstVisiblePosition);
-//		Log.d(LOG_TAG, "count:" + taskList.getCount());
-//		if (total > TOTAL_TASKS_IN_VIEW){
-//			if(total -1 == to){
-//				
-//				getListView().setSelectionFromTop(total  - 6, 0);
-//			} else {
-//				getListView().setSelectionFromTop(firstVisiblePosition, 0);
-//			}
-//    	}
+//		Log.d(LOG_TAG, "in on Resume");
+//		int height = taskList.getHeight();
+//        Resources res = getResources();
+//        int normalItemHeight = res.getDimensionPixelSize(R.dimen.normal_height);
+//        int newHeight = (height/normalItemHeight) * normalItemHeight; 
+//        Log.d(LOG_TAG, "height:" + height + " new height:" + newHeight);
+//        taskList.getLayoutParams().height = newHeight;
 	}
 	
 	public void checkOffTask(int which, View targetView) {
@@ -399,12 +397,8 @@ public class TaskBrowserActivity extends ListActivity {
     	public void drop(int from, int to) {
 
     		move(from, to);
-        	int firstVisiblePosition = getFirstVisiblePostionBeforeRefresh(); 
-        	int lastVisiblePosition = taskList.getLastVisiblePosition();
         	resetBottomMargin();
         	refreshTasksList();
-
-        	//scrollBackToViewingTasks(to, firstVisiblePosition, lastVisiblePosition);
         }
 
 		private void resetBottomMargin() {
@@ -413,11 +407,6 @@ public class TaskBrowserActivity extends ListActivity {
 				viewGroupParams.bottomMargin = 0;
 	    		getListView().setLayoutParams(viewGroupParams);				
 			}
-		}
-
-		private int getFirstVisiblePostionBeforeRefresh() {
-			
-			return taskList.getFirstVisiblePosition();
 		}
 
 		private void move(int from, int to) {
