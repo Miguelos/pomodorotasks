@@ -4,9 +4,9 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import android.R.drawable;
 import android.app.ListActivity;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.database.Cursor;
 import android.media.MediaPlayer;
 import android.os.Bundle;
@@ -14,7 +14,6 @@ import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Vibrator;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -117,9 +116,9 @@ public class TaskBrowserActivity extends ListActivity {
     	    		//counter = new ProgressThread(handler);
         	        counter.start();
         	        
-        	        taskControlButton.setImageResource(R.drawable.ic_media_pause);
+        	        taskControlButton.setImageResource(drawable.ic_menu_close_clear_cancel);
         	        taskControlButton.setTag(R.string.TASK_CONTROL_BUTTON_STATE_TYPE, R.string.TO_STOP_STATE);
-        	        adjustHeightToDefault(taskControlButton);
+        	        adjustDimensionsToDefault(taskControlButton);
     	    	}
     	    }
     	});
@@ -135,17 +134,30 @@ public class TaskBrowserActivity extends ListActivity {
 	}
 
 	private void resetProgressControl(final ImageButton taskControlButton) {
-		mTimeLeft.setText(R.string.zeroTime);
+		resetTimeElapsed();
 		mProgressBar.setProgress(0);
-        taskControlButton.setImageResource(R.drawable.ic_media_play);
+        taskControlButton.setImageResource(drawable.ic_media_play);
         taskControlButton.setTag(R.string.TASK_CONTROL_BUTTON_STATE_TYPE, R.string.TO_PLAY_STATE);
-        adjustHeightToDefault(taskControlButton);
+        adjustDimensionsToDefault(taskControlButton);
 	}
 
-	private void adjustHeightToDefault(final ImageButton taskControlButton) {
+	private void resetTimeElapsed() {
+		
+		mTimeLeft.setText(mTasksDatabaseHelper.fetchTaskDurationSetting() + ":00");
+	}
+
+	private boolean isRunTaskPanelInitialized() {
+		return runTaskPanel.getVisibility() == View.VISIBLE;
+	}
+	
+	private boolean isTaskRunning() {
+		return mProgressBar.getProgress() != 0;
+	}
+
+	private void adjustDimensionsToDefault(final ImageButton taskControlButton) {
 		Button leftButton = (Button) findViewById(R.id.left_text_button);
-		int defaultButtonHeight = leftButton.getHeight();
-		taskControlButton.getLayoutParams().height = defaultButtonHeight;
+		taskControlButton.getLayoutParams().height = leftButton.getHeight();
+		taskControlButton.getLayoutParams().width = leftButton.getWidth();
 	}
 	
 	private void initTasksList() {
@@ -291,9 +303,15 @@ public class TaskBrowserActivity extends ListActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
-        menu.add(0, MAIN_MENU_DELETED_COMPLETED_ID, 0, R.string.menu_delete_completed);
-        menu.add(0, MAIN_MENU_DELETE_ALL_ID, 0, R.string.menu_delete_all);
-        menu.add(0, MAIN_MENU_OPTIONS_ID, 0, R.string.menu_options);
+        
+        MenuItem menuItem = menu.add(0, MAIN_MENU_DELETED_COMPLETED_ID, 0, R.string.menu_delete_completed);
+        menuItem.setIcon(drawable.ic_menu_agenda);
+        
+        menuItem = menu.add(0, MAIN_MENU_DELETE_ALL_ID, 0, R.string.menu_delete_all);
+        menuItem.setIcon(R.drawable.ic_menu_clear_playlist);
+        
+        menuItem = menu.add(0, MAIN_MENU_OPTIONS_ID, 0, R.string.menu_options);
+        menuItem.setIcon(drawable.ic_menu_preferences);
         return true;
     }
 
@@ -389,7 +407,18 @@ public class TaskBrowserActivity extends ListActivity {
     protected void onActivityResult(int requestCode, int resultCode, 
                                     Intent intent) {
         super.onActivityResult(requestCode, resultCode, intent);
-        refreshTasksList();
+        
+        switch (requestCode) {
+			case ACTIVITY_SET_OPTIONS:
+				
+				if (isRunTaskPanelInitialized() && !isTaskRunning()){
+					resetTimeElapsed();
+				}
+				break;
+			case ACTIVITY_EDIT:
+				refreshTasksList();
+				break;
+		}
     }
     
     private TouchInterceptor.DropListener mDropListener = new TouchInterceptor.DropListener() {
