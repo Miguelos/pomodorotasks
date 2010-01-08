@@ -3,6 +3,7 @@ package com.kpz.pomodorotasks;
 import android.R.drawable;
 import android.app.ListActivity;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.media.MediaPlayer;
 import android.os.Bundle;
@@ -66,8 +67,12 @@ public class TaskBrowserActivity extends ListActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
-        setContentView(R.layout.tasks_list);
+        initView();
+    }
+
+	private void initView() {
+
+		setContentView(R.layout.tasks_list);
         
         vibrator = (Vibrator)getSystemService(VIBRATOR_SERVICE);
         
@@ -77,8 +82,15 @@ public class TaskBrowserActivity extends ListActivity {
         initRunTaskPanel();
     	
         //registerForContextMenu(getListView());
-    }
-    
+	}
+
+	@Override
+	public void onConfigurationChanged(Configuration newConfig) {
+		super.onConfigurationChanged(newConfig);
+		
+		// doing nothing to the view when screen orientation changes
+	}
+	
 	private void initRunTaskPanel() {
 		
 		runTaskPanel = (LinearLayout)findViewById(R.id.runTaskPanel);
@@ -90,6 +102,14 @@ public class TaskBrowserActivity extends ListActivity {
 		runTaskPanel.setVisibility(View.VISIBLE);
 		
 		taskControlButton = (ImageButton) findViewById(R.id.control_icon);
+		hideButton = (ImageButton) findViewById(R.id.hide_panel_button);
+		hideButton.setVisibility(View.VISIBLE);
+		hideButton.setOnClickListener(new View.OnClickListener() {
+			
+			public void onClick(View v) {
+				runTaskPanel.setVisibility(View.GONE);
+			}
+		});
 		
     	mTaskDescription = (TextView) findViewById(R.id.task_description);
     	mTaskDescription.setText(taskDescription);
@@ -115,6 +135,7 @@ public class TaskBrowserActivity extends ListActivity {
     	    		//counter = new ProgressThread(handler);
         	        counter.start();
         	        
+        	        hideButton.setVisibility(View.INVISIBLE);
         	        taskControlButton.setImageResource(drawable.ic_menu_close_clear_cancel);
         	        taskControlButton.setTag(R.string.TASK_CONTROL_BUTTON_STATE_TYPE, R.string.TO_STOP_STATE);
         	        adjustDimensionsToDefault(taskControlButton);
@@ -162,6 +183,7 @@ public class TaskBrowserActivity extends ListActivity {
         taskControlButton.setImageResource(drawable.ic_media_play);
         taskControlButton.setTag(R.string.TASK_CONTROL_BUTTON_STATE_TYPE, R.string.TO_PLAY_STATE);
         adjustDimensionsToDefault(taskControlButton);
+        hideButton.setVisibility(View.VISIBLE);
 	}
 
 	private void resetTimeElapsed() {
@@ -502,6 +524,8 @@ public class TaskBrowserActivity extends ListActivity {
 	    	resetProgressControl(taskControlButton);
         }
     };
+
+	private ImageButton hideButton;
 	
     public class MyCount extends CountDownTimer{
 	    
