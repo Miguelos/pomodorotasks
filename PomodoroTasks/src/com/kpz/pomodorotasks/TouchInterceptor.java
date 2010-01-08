@@ -91,7 +91,6 @@ public class TouchInterceptor extends ListView {
                             float velocityY) {
 
                     	int itemnum = pointToPosition((int)e1.getX(), (int)e1.getY());
-                    	//Log.d(TAG, "touch interceptor onFling itemnum: " + itemnum + " ; velocityX:" + velocityX + " ; ev2.getX():" + e2.getX() + " ; e1.getX():" + e1.getX());
 
 						if (itemnum != INVALID_POSITION && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
 
@@ -102,31 +101,30 @@ public class TouchInterceptor extends ListView {
 
 							if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE) {
 
-								//Log.d(TAG, "left to right");
 								stopDragging();
 								mCheckOffListener.checkOff(itemnum);
-									unExpandViews(false);
-
-								return true;
+								unExpandViews(false);
+								return false;
 
 							} else if (e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE) {
 
-								//Log.d(TAG, "right to left");
 								stopDragging();
 								mCheckOffListener.uncheckOff(itemnum);
-									unExpandViews(false);
-
-								return true;
+								unExpandViews(false);
+								return false;
 							}
 						}
+						
                         return false;
                     }
                 });
             }
         }
+    	
         if (mDragListener != null || mDropListener != null) {
             switch (ev.getAction()) {
                 case MotionEvent.ACTION_DOWN:
+                	
                     int x = (int) ev.getX();
                     int y = (int) ev.getY();
                     int itemnum = pointToPosition(x, y);
@@ -251,17 +249,13 @@ public class TouchInterceptor extends ListView {
         if (mDragPos > mFirstDragPos && mDragPos != total - 1) {
             itemRightBelowDragPos++;
         }
-		//Log.d(TAG, "begin mDragPos:" + mDragPos + " total:" + total + " getFirstVisiblePosition:" + getFirstVisiblePosition() + " rightBelow:" + itemRightBelowDragPos);
 
         View itemBeingDragged = getChildAt(mFirstDragPos - getFirstVisiblePosition());
         for (int currentNodePos = 0;; currentNodePos++) {
 
-        	//Log.d(TAG, "currentNodePos:" + currentNodePos);  
-
         	int gravity = Gravity.BOTTOM;
             View currentNode = getChildAt(currentNodePos);
             if (currentNode == null) {
-            	//Log.d(TAG, "break total:" + currentNodePos); 
                 break;
             }
             int height = mItemHeightNormal;
@@ -313,7 +307,8 @@ public class TouchInterceptor extends ListView {
             switch (action) {
                 case MotionEvent.ACTION_UP:
                 case MotionEvent.ACTION_CANCEL:
-                    Rect r = mTempRect;
+                    
+                	Rect r = mTempRect;
                     mDragView.getDrawingRect(r);
                     stopDragging();
                 
@@ -334,6 +329,7 @@ public class TouchInterceptor extends ListView {
                     
                 case MotionEvent.ACTION_DOWN:
                 case MotionEvent.ACTION_MOVE:
+                	
                 	int x = (int) ev.getX();
                     int y = (int) ev.getY();
                     dragView(x, y);
@@ -425,7 +421,7 @@ public class TouchInterceptor extends ListView {
         mWindowManager.addView(v, mWindowParams);
         mDragView = v;
     }
-    
+
     private void dragView(int x, int y) {
         if (mCheckOffMode == SLIDE) {
             float alpha = 1.0f;
