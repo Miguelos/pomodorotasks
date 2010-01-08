@@ -1,9 +1,5 @@
 package com.kpz.pomodorotasks;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 import android.R.drawable;
 import android.app.ListActivity;
 import android.content.Intent;
@@ -14,11 +10,9 @@ import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Vibrator;
-import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
@@ -28,10 +22,13 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
-import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.SimpleCursorAdapter.ViewBinder;
 
 import com.kpz.pomodorotasks.TaskDatabaseAdapter.StatusType;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class TaskBrowserActivity extends ListActivity {
     
@@ -42,15 +39,17 @@ public class TaskBrowserActivity extends ListActivity {
 	private static final int ACTIVITY_SET_OPTIONS = 2;
 	
 	private static final int MAIN_MENU_DELETE_ALL_ID = Menu.FIRST;
-	private static final int MAIN_MENU_OPTIONS_ID = MAIN_MENU_DELETE_ALL_ID + 1;
-	private static final int MAIN_MENU_DELETED_COMPLETED_ID = MAIN_MENU_DELETE_ALL_ID + 2;
+	private static final int MAIN_MENU_DELETED_COMPLETED_ID = MAIN_MENU_DELETE_ALL_ID + 1;
+	private static final int MAIN_MENU_OPTIONS_ID = MAIN_MENU_DELETE_ALL_ID + 2;
 	
 	private static final int CONTEXT_MENU_EDIT_ID = Menu.FIRST + 10;
 	private static final int CONTEXT_MENU_DELETE_ID = CONTEXT_MENU_EDIT_ID + 1;
 	private static final int CONTEXT_MENU_COMPLETE_ID = CONTEXT_MENU_EDIT_ID + 2;
 	private static final int CONTEXT_MENU_REOPEN_ID = CONTEXT_MENU_EDIT_ID + 3;
 	
-	private static final int ONE_SEC = 1000;	
+	private static final int ONE_SEC = 1000;
+
+	private static final String TAG = "PomodoroTasks";	
     
 	private ListView taskList;
     private TaskDatabaseAdapter mTasksDatabaseHelper;
@@ -77,7 +76,7 @@ public class TaskBrowserActivity extends ListActivity {
         initAddTaskInput();
         initRunTaskPanel();
     	
-        registerForContextMenu(getListView());
+        //registerForContextMenu(getListView());
     }
     
 	private void initRunTaskPanel() {
@@ -123,6 +122,30 @@ public class TaskBrowserActivity extends ListActivity {
     	    }
     	});
     	
+	}
+	
+    private void refreshTaskPanel() {
+    	
+    	String text = mTaskDescription.getText().toString();
+    	
+    	if (text == null || text.equals("")){
+    		return;
+    	}
+    	
+    	boolean exists = false;
+    	final int count = getListAdapter().getCount();
+        for (int i = count - 1; i >= 0; i--) {
+
+        	Cursor cursor = (Cursor)getListAdapter().getItem(i);
+        	String taskDescription = cursor.getString(cursor.getColumnIndex(TaskDatabaseAdapter.KEY_DESCRIPTION));
+            if(taskDescription.equals(text)){
+				exists = true;
+            }
+        }    
+        
+        if (!exists){
+        	mTaskDescription.setText("");
+        }
 	}
 
 	private void resetTaskRun(final ImageButton taskControlButton) {
@@ -173,8 +196,8 @@ public class TaskBrowserActivity extends ListActivity {
         // Create an array to specify the fields we want to display in the list (only Description)
         String[] from = new String[]{TaskDatabaseAdapter.KEY_DESCRIPTION, TaskDatabaseAdapter.KEY_STATUS};
         
-        // and an array of the fields we want to bind those fields to (in this case just text1)
-        int[] to = new int[]{R.id.text1, R.id.taskRow};
+        // and an array of the fields we want to bind those fields to (in this case just task_description)
+        int[] to = new int[]{R.id.task_description, R.id.taskRow};
         
         SimpleCursorAdapter taskListCursorAdapter = new SimpleCursorAdapter(getApplication(), R.layout.tasks_row, tasksCursor, from, to);
         taskListCursorAdapter.setViewBinder(new ViewBinder() {
@@ -183,7 +206,7 @@ public class TaskBrowserActivity extends ListActivity {
 				
 				if (view.getId() == R.id.taskRow){
 
-					TextView textView = (TextView)view.findViewById(R.id.text1);
+					TextView textView = (TextView)view.findViewById(R.id.task_description);
 					
 					String statusText = cursor.getString(columnIndex);
 					if (StatusType.OPEN.getDescription().equals(statusText)){
@@ -205,7 +228,7 @@ public class TaskBrowserActivity extends ListActivity {
 
 	private void initTasksListViewContainer() {
 		taskList = getListView();
-        taskList.setOnCreateContextMenuListener(this);
+//        taskList.setOnCreateContextMenuListener(this);
         ((TouchInterceptor) taskList).setDropListener(mDropListener);
         ((TouchInterceptor) taskList).setCheckOffListener(mCheckOffListener);
         taskList.setCacheColorHint(0);
@@ -226,7 +249,7 @@ public class TaskBrowserActivity extends ListActivity {
 	
 	public void checkOffTask(int which, View targetView) {
 
-		TextView textView = (TextView)targetView.findViewById(R.id.text1);
+		TextView textView = (TextView)targetView.findViewById(R.id.task_description);
     	textView.getPaint().setStrikeThruText(true);
     	
     	Cursor cursor = (Cursor)getListAdapter().getItem(which);
@@ -236,13 +259,13 @@ public class TaskBrowserActivity extends ListActivity {
 	}
 	
     private boolean refreshTasksList() {
-    	
+
     	return taskListCursor.requery();
 	}
 
 	public void uncheckOffTask(int which, View targetView) {
 
-    	TextView textView = (TextView)targetView.findViewById(R.id.text1);
+    	TextView textView = (TextView)targetView.findViewById(R.id.task_description);
     	textView.getPaint().setStrikeThruText(false);
     	
     	Cursor cursor = (Cursor)getListAdapter().getItem(which);
@@ -278,9 +301,12 @@ public class TaskBrowserActivity extends ListActivity {
             
         	public void onClick(View v) {
  
-            	createNewTask(leftTextEdit);
-                refreshTasksList();
-                resetAddTaskEntryDisplay(leftTextEdit);
+        		String noteDescription = leftTextEdit.getText().toString().trim();
+        		if (!noteDescription.equals("")){
+        			createNewTask(noteDescription);
+                    refreshTasksList();
+                    resetAddTaskEntryDisplay(leftTextEdit);        			
+        		}
             }
 
 			private void resetAddTaskEntryDisplay(final EditText leftTextEdit) {
@@ -293,8 +319,7 @@ public class TaskBrowserActivity extends ListActivity {
 //                .showSoftInput(editText, 0);  
 			}
 
-			private void createNewTask(final EditText leftTextEdit) {
-				String noteDescription = leftTextEdit.getText().toString();
+			private void createNewTask(final String noteDescription) {
             	mTasksDatabaseHelper.createTask(noteDescription);
 			}
         });
@@ -308,7 +333,7 @@ public class TaskBrowserActivity extends ListActivity {
         menuItem.setIcon(drawable.ic_menu_agenda);
         
         menuItem = menu.add(0, MAIN_MENU_DELETE_ALL_ID, 0, R.string.menu_delete_all);
-        menuItem.setIcon(R.drawable.ic_menu_clear_playlist);
+        menuItem.setIcon(drawable.ic_menu_delete);
         
         menuItem = menu.add(0, MAIN_MENU_OPTIONS_ID, 0, R.string.menu_options);
         menuItem.setIcon(drawable.ic_menu_preferences);
@@ -322,12 +347,14 @@ public class TaskBrowserActivity extends ListActivity {
         case MAIN_MENU_DELETED_COMPLETED_ID:
         	mTasksDatabaseHelper.deleteCompleted();
 	        refreshTasksList();
+	        refreshTaskPanel();
         	return true;
         	
         case MAIN_MENU_DELETE_ALL_ID:
         	mTasksDatabaseHelper.deleteAll();
 	        refreshTasksList();
-        	return true;
+	        refreshTaskPanel();
+	        return true;
         	
         case MAIN_MENU_OPTIONS_ID:
         	Intent i = new Intent(this, SettingsActivity.class);
@@ -337,11 +364,18 @@ public class TaskBrowserActivity extends ListActivity {
        
         return super.onMenuItemSelected(featureId, item);
     }
-	
-    @Override
+
+/*
+******Disabling context menu for the time being as it's intefering with fling gesture!
+
+	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v,
 			ContextMenuInfo menuInfo) {
 		super.onCreateContextMenu(menu, v, menuInfo);
+		
+		//taskList.invalidateViews();
+		
+		if (mCurrentActionCanceled) return;
 		
     	Cursor cursor = (Cursor)getListAdapter().getItem(new Long(((AdapterContextMenuInfo)menuInfo).position).intValue());
 		String status = cursor.getString(cursor.getColumnIndex(TaskDatabaseAdapter.KEY_STATUS));
@@ -393,13 +427,14 @@ public class TaskBrowserActivity extends ListActivity {
 		}
 		return super.onContextItemSelected(item);
 	}
-	
+*/
+
 	@Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
         
     	super.onListItemClick(l, v, position, id);
         
-        TextView textView = (TextView)v.findViewById(R.id.text1);
+        TextView textView = (TextView)v.findViewById(R.id.task_description);
         showRunTaskPanel(textView.getText().toString());
     }
 
