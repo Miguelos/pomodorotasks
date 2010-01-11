@@ -104,14 +104,14 @@ public class TouchInterceptor extends ListView {
 								stopDragging();
 								mCheckOffListener.checkOff(itemnum);
 								unExpandViews(false);
-								return false;
+								return true;
 
 							} else if (e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE) {
 
 								stopDragging();
 								mCheckOffListener.uncheckOff(itemnum);
 								unExpandViews(false);
-								return false;
+								return true;
 							}
 						}
 						
@@ -120,7 +120,7 @@ public class TouchInterceptor extends ListView {
                 });
             }
         }
-    	
+        
         if (mDragListener != null || mDropListener != null) {
             switch (ev.getAction()) {
                 case MotionEvent.ACTION_DOWN:
@@ -161,6 +161,108 @@ public class TouchInterceptor extends ListView {
         return super.onInterceptTouchEvent(ev);
     }
     
+    @Override
+    public boolean onTouchEvent(MotionEvent ev) {
+    	
+        if (mGestureDetector != null && mGestureDetector.onTouchEvent(ev)) {
+			
+			ev.setAction(MotionEvent.ACTION_CANCEL);
+			super.onTouchEvent(ev);
+			return true;
+		}
+        
+        if ((mDragListener != null || mDropListener != null) && mDragView != null) {
+            int action = ev.getAction(); 
+            switch (action) {
+                case MotionEvent.ACTION_UP:
+                case MotionEvent.ACTION_CANCEL:
+                    
+                	Rect r = mTempRect;
+                    mDragView.getDrawingRect(r);
+                    stopDragging();
+                
+                    float expectedRightValue = r.right * 1/2;
+                    if (mCheckOffMode == SLIDE && ev.getX() > expectedRightValue) {
+                    	if (mCheckOffListener != null) {
+                    		// Not implemented
+                            //mRemoveListener.checkOff(mFirstDragPos);
+                        }
+                        unExpandViews(true);
+                    } else {
+                        if (mDropListener != null && mDragPos >= 0 && mDragPos < getCount()) {
+                            mDropListener.drop(mFirstDragPos, mDragPos);
+                        }
+                        unExpandViews(false);
+                    }
+                    break;
+                    
+                case MotionEvent.ACTION_DOWN:
+                case MotionEvent.ACTION_MOVE:
+                	
+                	int x = (int) ev.getX();
+                    int y = (int) ev.getY();
+                    dragView(x, y);
+                    int itemnum = getItemForPosition(y);
+                    if (itemnum >= 0) {
+
+                    	boolean isAnyItemExpanded = false;
+                    	if (action == MotionEvent.ACTION_DOWN || itemnum != mDragPos) {
+                            if (mDragListener != null) {
+                                mDragListener.drag(mDragPos, itemnum);
+                            }
+                            mDragPos = itemnum;
+                            
+							isAnyItemExpanded = doExpansion();
+                            
+                        }
+                        
+                        
+                        int speed = 0;
+                        adjustScrollBounds(y);
+                        
+                        if (y < mUpperBound && isAnyItemExpanded){
+                        	// do not scroll up when item is dragged is upwards and an adjacent has already made space.
+                        	break;
+                        }
+                        
+                        if (y > mLowerBound) {
+                            // scroll the list down a bit
+                            speed = y > (mHeight + mLowerBound) / 2 ? HIGHER_BOUND_SPEED : LOWER_BOUND_SPEED;
+                        } else if (y < mUpperBound) {
+                            // scroll the list up a bit
+                            speed = y < mUpperBound / 2 ? -HIGHER_BOUND_SPEED : -LOWER_BOUND_SPEED;
+                        }
+                        if (speed != 0) {
+                        	
+                            int ref = pointToPosition(0, mHeight / 2);
+                            if (ref == AdapterView.INVALID_POSITION) {
+                                //we hit a divider or an invisible view, check somewhere else
+                                ref = pointToPosition(0, mHeight / 2 + getDividerHeight() + 64);
+                            }
+                            View v = getChildAt(ref - getFirstVisiblePosition());
+                            if (v!= null) {
+                                int pos = v.getTop();
+                                setSelectionFromTop(ref, pos - speed);
+                            } else {
+                            	// just scroll.. for heaven's sake.
+                            	if (y > mLowerBound){
+                            		// scroll by one item down
+                            		if (getChildAt(1) != null){
+                            			setSelectionFromTop(1, 0);
+                            		}
+                            	}
+                            	
+                            }
+                        }
+                    }
+                    break;
+            }
+            return true;
+        }
+        
+        return super.onTouchEvent(ev);
+    }
+
     /*
      * pointToPosition() doesn't consider invisible views, but we
      * need to, so implement a slightly different version.
@@ -293,106 +395,6 @@ public class TouchInterceptor extends ListView {
         return isExpanded;
     }
 
-    @Override
-    public boolean onTouchEvent(MotionEvent ev) {
-    	
-        if (mGestureDetector != null) {
-            if(mGestureDetector.onTouchEvent(ev)){
-            	return true;
-            }
-        }
-        
-        if ((mDragListener != null || mDropListener != null) && mDragView != null) {
-            int action = ev.getAction(); 
-            switch (action) {
-                case MotionEvent.ACTION_UP:
-                case MotionEvent.ACTION_CANCEL:
-                    
-                	Rect r = mTempRect;
-                    mDragView.getDrawingRect(r);
-                    stopDragging();
-                
-                    float expectedRightValue = r.right * 1/2;
-                    if (mCheckOffMode == SLIDE && ev.getX() > expectedRightValue) {
-                    	if (mCheckOffListener != null) {
-                    		// Not implemented
-                            //mRemoveListener.checkOff(mFirstDragPos);
-                        }
-                        unExpandViews(true);
-                    } else {
-                        if (mDropListener != null && mDragPos >= 0 && mDragPos < getCount()) {
-                            mDropListener.drop(mFirstDragPos, mDragPos);
-                        }
-                        unExpandViews(false);
-                    }
-                    break;
-                    
-                case MotionEvent.ACTION_DOWN:
-                case MotionEvent.ACTION_MOVE:
-                	
-                	int x = (int) ev.getX();
-                    int y = (int) ev.getY();
-                    dragView(x, y);
-                    int itemnum = getItemForPosition(y);
-                    if (itemnum >= 0) {
-
-                    	boolean isAnyItemExpanded = false;
-                    	if (action == MotionEvent.ACTION_DOWN || itemnum != mDragPos) {
-                            if (mDragListener != null) {
-                                mDragListener.drag(mDragPos, itemnum);
-                            }
-                            mDragPos = itemnum;
-                            
-							isAnyItemExpanded = doExpansion();
-                            
-                        }
-                        
-                        
-                        int speed = 0;
-                        adjustScrollBounds(y);
-                        
-                        if (y < mUpperBound && isAnyItemExpanded){
-                        	// do not scroll up when item is dragged is upwards and an adjacent has already made space.
-                        	break;
-                        }
-                        
-                        if (y > mLowerBound) {
-                            // scroll the list down a bit
-                            speed = y > (mHeight + mLowerBound) / 2 ? HIGHER_BOUND_SPEED : LOWER_BOUND_SPEED;
-                        } else if (y < mUpperBound) {
-                            // scroll the list up a bit
-                            speed = y < mUpperBound / 2 ? -HIGHER_BOUND_SPEED : -LOWER_BOUND_SPEED;
-                        }
-                        if (speed != 0) {
-                        	
-                            int ref = pointToPosition(0, mHeight / 2);
-                            if (ref == AdapterView.INVALID_POSITION) {
-                                //we hit a divider or an invisible view, check somewhere else
-                                ref = pointToPosition(0, mHeight / 2 + getDividerHeight() + 64);
-                            }
-                            View v = getChildAt(ref - getFirstVisiblePosition());
-                            if (v!= null) {
-                                int pos = v.getTop();
-                                setSelectionFromTop(ref, pos - speed);
-                            } else {
-                            	// just scroll.. for heaven's sake.
-                            	if (y > mLowerBound){
-                            		// scroll by one item down
-                            		if (getChildAt(1) != null){
-                            			setSelectionFromTop(1, 0);
-                            		}
-                            	}
-                            	
-                            }
-                        }
-                    }
-                    break;
-            }
-            return true;
-        }
-        
-        return super.onTouchEvent(ev);
-    }
     
     private void startDragging(Bitmap bm, int y) {
         stopDragging();
