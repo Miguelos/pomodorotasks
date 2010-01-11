@@ -1,9 +1,11 @@
 package com.kpz.pomodorotasks;
 
 import android.app.Activity;
+import android.content.Context;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 
@@ -30,6 +32,7 @@ public class TaskEditActivity extends Activity {
 
     	    public void onClick(View view) {
     	    	saveState();
+    	    	((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(mDescription.getWindowToken(), 0);
     	        setResult(RESULT_OK);
     	        finish();
     	    }
@@ -41,6 +44,7 @@ public class TaskEditActivity extends Activity {
     	revertButton.setOnClickListener(new View.OnClickListener() {
 
     	    public void onClick(View view) {
+    	    	((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(mDescription.getWindowToken(), 0);
     	        setResult(RESULT_OK);
     	        finish();
     	    }

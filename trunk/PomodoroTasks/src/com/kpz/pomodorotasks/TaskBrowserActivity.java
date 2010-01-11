@@ -1,7 +1,9 @@
 package com.kpz.pomodorotasks;
 
 import android.R.drawable;
+import android.app.AlertDialog;
 import android.app.ListActivity;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.database.Cursor;
@@ -42,11 +44,6 @@ public class TaskBrowserActivity extends ListActivity {
 	private static final int MAIN_MENU_DELETE_ALL_ID = Menu.FIRST;
 	private static final int MAIN_MENU_DELETED_COMPLETED_ID = MAIN_MENU_DELETE_ALL_ID + 1;
 	private static final int MAIN_MENU_OPTIONS_ID = MAIN_MENU_DELETE_ALL_ID + 2;
-	
-	private static final int CONTEXT_MENU_EDIT_ID = Menu.FIRST + 10;
-	private static final int CONTEXT_MENU_DELETE_ID = CONTEXT_MENU_EDIT_ID + 1;
-	private static final int CONTEXT_MENU_COMPLETE_ID = CONTEXT_MENU_EDIT_ID + 2;
-	private static final int CONTEXT_MENU_REOPEN_ID = CONTEXT_MENU_EDIT_ID + 3;
 	
 	private static final int ONE_SEC = 1000;
 
@@ -97,6 +94,12 @@ public class TaskBrowserActivity extends ListActivity {
 		runTaskPanel.setVisibility(View.GONE);
 	}
 
+	private void showAndStartRunTaskPanel(String taskDescription) {
+
+		showRunTaskPanel(taskDescription);
+		beginTask();
+	}
+	
 	private void showRunTaskPanel(String taskDescription) {
 		
 		runTaskPanel.setVisibility(View.VISIBLE);
@@ -122,27 +125,34 @@ public class TaskBrowserActivity extends ListActivity {
 
     	    public void onClick(View view) {
 
-    	    	totalTime = mTasksDatabaseHelper.fetchTaskDurationSetting() * 60;
-	    		mProgressBar.setMax(totalTime);
-	    		
     	    	if (counter != null && taskControlButton.getTag(R.string.TASK_CONTROL_BUTTON_STATE_TYPE).equals(R.string.TO_STOP_STATE)){
     	    		
     	    		resetTaskRun(taskControlButton);
     	    		
     	    	} else {
 
-    	    		counter = new MyCount(totalTime * ONE_SEC, ONE_SEC, beepHandler);
-    	    		//counter = new ProgressThread(handler);
-        	        counter.start();
-        	        
-        	        hideButton.setVisibility(View.INVISIBLE);
-        	        taskControlButton.setImageResource(drawable.ic_menu_close_clear_cancel);
-        	        taskControlButton.setTag(R.string.TASK_CONTROL_BUTTON_STATE_TYPE, R.string.TO_STOP_STATE);
-        	        adjustDimensionsToDefault(taskControlButton);
+    	    		beginTask();
     	    	}
     	    }
+
     	});
-    	
+
+	
+	}
+	
+	private void beginTask() {
+		
+		totalTime = mTasksDatabaseHelper.fetchTaskDurationSetting() * 60;
+		mProgressBar.setMax(totalTime);
+		
+		counter = new MyCount(totalTime * ONE_SEC, ONE_SEC, beepHandler);
+		//counter = new ProgressThread(handler);
+		counter.start();
+		
+		hideButton.setVisibility(View.INVISIBLE);
+		taskControlButton.setImageResource(R.drawable.btn_dialog_normal);
+		taskControlButton.setTag(R.string.TASK_CONTROL_BUTTON_STATE_TYPE, R.string.TO_STOP_STATE);
+//		adjustDimensionsToDefault(taskControlButton);
 	}
 	
     private void refreshTaskPanel() {
@@ -387,77 +397,46 @@ public class TaskBrowserActivity extends ListActivity {
         return super.onMenuItemSelected(featureId, item);
     }
 
-/*
-******Disabling context menu for the time being as it's intefering with fling gesture!
-
 	@Override
-	public void onCreateContextMenu(ContextMenu menu, View v,
-			ContextMenuInfo menuInfo) {
-		super.onCreateContextMenu(menu, v, menuInfo);
-		
-		//taskList.invalidateViews();
-		
-		if (mCurrentActionCanceled) return;
-		
-    	Cursor cursor = (Cursor)getListAdapter().getItem(new Long(((AdapterContextMenuInfo)menuInfo).position).intValue());
-		String status = cursor.getString(cursor.getColumnIndex(TaskDatabaseAdapter.KEY_STATUS));
-		
-		if (StatusType.isOpen(status)){
-			
-			menu.add(0, CONTEXT_MENU_COMPLETE_ID, 0, R.string.menu_complete);
-			
-		} else if (StatusType.isCompleted(status)){
-			
-			menu.add(0, CONTEXT_MENU_REOPEN_ID, 0, R.string.menu_reopen);
-		}
-		
-		
-		menu.add(0, CONTEXT_MENU_EDIT_ID, 0, R.string.menu_edit);
-		menu.add(0, CONTEXT_MENU_DELETE_ID, 0, R.string.menu_delete);
-	}
-
-    @Override
-	public boolean onContextItemSelected(MenuItem item) {
-		
-    	AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
-    	Cursor cursor = (Cursor)getListAdapter().getItem(new Long(info.position).intValue());
-    	Long rowId = new Long(cursor.getString(cursor.getColumnIndex(TaskDatabaseAdapter.KEY_ROWID)));
-    	
-    	switch(item.getItemId()) {
-		case CONTEXT_MENU_EDIT_ID:
-
-			Intent i = new Intent(this, TaskEditActivity.class);
-	        i.putExtra(TaskDatabaseAdapter.KEY_ROWID, rowId);
-	        startActivityForResult(i, ACTIVITY_EDIT);
-	        return true;
-	        
-		case CONTEXT_MENU_DELETE_ID:
-    		
-	        mTasksDatabaseHelper.delete(rowId);
-	        refreshTasksList();
-	        return true;
-	        
-		case CONTEXT_MENU_COMPLETE_ID:
-			
-			checkOffTask(info.position, info.targetView);
-			return true;
-	        
-		case CONTEXT_MENU_REOPEN_ID:
-			
-			uncheckOffTask(info.position, info.targetView);
-	        return true;    
-		}
-		return super.onContextItemSelected(item);
-	}
-*/
-
-	@Override
-    protected void onListItemClick(ListView l, View v, int position, long id) {
+    protected void onListItemClick(ListView l, final View v, final int position, long id) {
         
     	super.onListItemClick(l, v, position, id);
-        
-        TextView textView = (TextView)v.findViewById(R.id.task_description);
-        showRunTaskPanel(textView.getText().toString());
+
+    	Cursor cursor = (Cursor)getListAdapter().getItem(new Long(position).intValue());
+    	final Long rowId = new Long(cursor.getString(cursor.getColumnIndex(TaskDatabaseAdapter.KEY_ROWID)));
+		
+    	final String[] items = {"Start", "Edit", "Delete"};
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setItems(items, new DialogInterface.OnClickListener() {
+		    public void onClick(DialogInterface dialog, int item) {
+		        
+		    	//Toast.makeText(getApplicationContext(), items[item], Toast.LENGTH_SHORT).show();
+		        
+		    	switch (item) {
+				case 0:
+			        TextView textView = (TextView)v.findViewById(R.id.task_description);
+			        showAndStartRunTaskPanel(textView.getText().toString());
+					break;
+					
+				case 1:
+					Intent i = new Intent(TaskBrowserActivity.this, TaskEditActivity.class);
+			        i.putExtra(TaskDatabaseAdapter.KEY_ROWID, rowId);
+			        startActivityForResult(i, ACTIVITY_EDIT);
+			        break;
+			        
+				case 2:
+			        mTasksDatabaseHelper.delete(rowId);
+			        refreshTasksList();
+			        break;
+			        
+				default:
+					break;
+				}
+		        
+		    }
+		});
+		AlertDialog alert = builder.create();
+		alert.show();
     }
 
     @Override
