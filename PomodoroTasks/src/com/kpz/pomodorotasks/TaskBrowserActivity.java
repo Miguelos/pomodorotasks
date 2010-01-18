@@ -35,8 +35,9 @@ import java.util.Date;
 
 public class TaskBrowserActivity extends ListActivity {
     
-
 	private static final String LOG_TAG = "PomodoroTasks";
+
+	private static final int NOTIFICATION_ID = R.layout.tasks_list;
 	
 	private static final int ACTIVITY_EDIT = 1;
 	private static final int ACTIVITY_SET_OPTIONS = 2;
@@ -64,21 +65,34 @@ public class TaskBrowserActivity extends ListActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
         initView();
     }
+    
+    @Override
+    protected void onDestroy() {
 
+    	stopService(new Intent(TaskBrowserActivity.this, 
+                NotifyingService.class));
+    	
+    	super.onDestroy();
+    }
+    
 	private void initView() {
 
-		setContentView(R.layout.tasks_list);
+		setContentView(NOTIFICATION_ID);
         
         vibrator = (Vibrator)getSystemService(VIBRATOR_SERVICE);
         
         initDatabaseHelper();        
         initTasksList();
         initAddTaskInput();
-        initRunTaskPanel();
-    	
-        //registerForContextMenu(getListView());
+        initAndHideRunTaskPanel();   
+	}
+
+	private void initAndHideRunTaskPanel() {
+		initRunTaskPanel();
+		runTaskPanel.setVisibility(View.GONE);		
 	}
 
 	@Override
@@ -91,19 +105,6 @@ public class TaskBrowserActivity extends ListActivity {
 	private void initRunTaskPanel() {
 		
 		runTaskPanel = (LinearLayout)findViewById(R.id.runTaskPanel);
-		runTaskPanel.setVisibility(View.GONE);
-	}
-
-	private void showAndStartRunTaskPanel(String taskDescription) {
-
-		showRunTaskPanel(taskDescription);
-		beginTask();
-	}
-	
-	private void showRunTaskPanel(String taskDescription) {
-		
-		runTaskPanel.setVisibility(View.VISIBLE);
-		
 		taskControlButton = (ImageButton) findViewById(R.id.control_icon);
 		hideButton = (ImageButton) findViewById(R.id.hide_panel_button);
 		hideButton.setVisibility(View.VISIBLE);
@@ -115,12 +116,9 @@ public class TaskBrowserActivity extends ListActivity {
 		});
 		
     	mTaskDescription = (TextView) findViewById(R.id.task_description);
-    	mTaskDescription.setText(taskDescription);
     	mTimeLeft = (TextView) findViewById(R.id.time_left);
     	mProgressBar = (ProgressBar) findViewById(R.id.progress_horizontal);
 
-    	resetTaskRun(taskControlButton);
-    	
     	taskControlButton.setOnClickListener(new View.OnClickListener() {
 
     	    public void onClick(View view) {
@@ -136,8 +134,19 @@ public class TaskBrowserActivity extends ListActivity {
     	    }
 
     	});
+	}
 
+	private void showAndStartRunTaskPanel(String taskDescription) {
+
+		showRunTaskPanel(taskDescription);
+		resetTaskRun(taskControlButton);
+		beginTask();
+	}
 	
+	private void showRunTaskPanel(String taskDescription) {
+		
+		runTaskPanel.setVisibility(View.VISIBLE);
+		mTaskDescription.setText(taskDescription);
 	}
 	
 	private void beginTask() {
@@ -150,9 +159,13 @@ public class TaskBrowserActivity extends ListActivity {
 		counter.start();
 		
 		hideButton.setVisibility(View.INVISIBLE);
-		taskControlButton.setImageResource(R.drawable.btn_dialog_normal);
+//		taskControlButton.setImageResource(R.drawable.btn_dialog_normal);
+		taskControlButton.setImageResource(R.drawable.stop);
 		taskControlButton.setTag(R.string.TASK_CONTROL_BUTTON_STATE_TYPE, R.string.TO_STOP_STATE);
 //		adjustDimensionsToDefault(taskControlButton);
+		
+		startService(new Intent(TaskBrowserActivity.this, 
+                NotifyingService.class));
 	}
 	
     private void refreshTaskPanel() {
@@ -185,12 +198,16 @@ public class TaskBrowserActivity extends ListActivity {
     	}
 		
 		resetProgressControl(taskControlButton);
+		
+		stopService(new Intent(TaskBrowserActivity.this, 
+                NotifyingService.class));
 	}
 
 	private void resetProgressControl(final ImageButton taskControlButton) {
 		resetTimeElapsed();
 		mProgressBar.setProgress(0);
-        taskControlButton.setImageResource(drawable.ic_media_play);
+//        taskControlButton.setImageResource(drawable.ic_media_play);
+        taskControlButton.setImageResource(R.drawable.play);
         taskControlButton.setTag(R.string.TASK_CONTROL_BUTTON_STATE_TYPE, R.string.TO_PLAY_STATE);
         adjustDimensionsToDefault(taskControlButton);
         hideButton.setVisibility(View.VISIBLE);
@@ -260,23 +277,9 @@ public class TaskBrowserActivity extends ListActivity {
 
 	private void initTasksListViewContainer() {
 		taskList = getListView();
-//        taskList.setOnCreateContextMenuListener(this);
         ((TouchInterceptor) taskList).setDropListener(mDropListener);
         ((TouchInterceptor) taskList).setCheckOffListener(mCheckOffListener);
         taskList.setCacheColorHint(0);
-	}
-	
-	@Override
-	protected void onResume() {
-		super.onResume();
-		
-//		Log.d(LOG_TAG, "in on Resume");
-//		int height = taskList.getHeight();
-//        Resources res = getResources();
-//        int normalItemHeight = res.getDimensionPixelSize(R.dimen.normal_height);
-//        int newHeight = (height/normalItemHeight) * normalItemHeight; 
-//        Log.d(LOG_TAG, "height:" + height + " new height:" + newHeight);
-//        taskList.getLayoutParams().height = newHeight;
 	}
 	
 	public void checkOffTask(int which, View targetView) {
@@ -487,7 +490,6 @@ public class TaskBrowserActivity extends ListActivity {
 		}
     };
 
-    // Define the Handler that receives messages from the thread and update the progress
     final Handler beepHandler = new Handler() {
         public void handleMessage(Message msg) {
 
@@ -526,7 +528,7 @@ public class TaskBrowserActivity extends ListActivity {
 			final DateFormat dateFormat = new SimpleDateFormat("mm:ss");
             String timeStr = dateFormat.format(new Date(millisUntilFinished - ONE_SEC));
             mTimeLeft.setText(timeStr);
-           	mProgressBar.incrementProgressBy(1);
+           	mProgressBar.setProgress(new Long(millisUntilFinished / ONE_SEC).intValue());
            	
            	if (timeStr.equals("00:00")){
            		beep();

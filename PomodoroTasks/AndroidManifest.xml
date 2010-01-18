@@ -3,11 +3,15 @@
     android:versionCode="2"
     android:versionName="0.2">
     
-    <application android:icon="@drawable/openclipartorg_machovka_tomato2">
+    <application android:icon="@drawable/launcher_1">
+    
+        <service android:name=".NotifyingService" />
+    
         <activity android:name=".TaskBrowserActivity" 
                     android:label="@string/app_name" 
                     android:theme="@style/CustomTheme" 
-                    android:configChanges="keyboardHidden|orientation">
+                    android:configChanges="keyboardHidden|orientation"
+                    android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
