@@ -3,14 +3,18 @@ package com.kpz.pomodorotasks;
 import android.R.drawable;
 import android.app.AlertDialog;
 import android.app.ListActivity;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
 import android.os.Vibrator;
 import android.view.Menu;
@@ -45,6 +49,7 @@ public class TaskBrowserActivity extends ListActivity {
 	private static final int MAIN_MENU_DELETE_ALL_ID = Menu.FIRST;
 	private static final int MAIN_MENU_DELETED_COMPLETED_ID = MAIN_MENU_DELETE_ALL_ID + 1;
 	private static final int MAIN_MENU_OPTIONS_ID = MAIN_MENU_DELETE_ALL_ID + 2;
+	private static final int MAIN_MENU_QUIT_ID = MAIN_MENU_DELETE_ALL_ID + 3;
 	
 	private static final int ONE_SEC = 1000;
 
@@ -72,6 +77,10 @@ public class TaskBrowserActivity extends ListActivity {
     @Override
     protected void onDestroy() {
 
+    	if (mConnection != null){
+    		unbindService(mConnection);    		
+    	}
+    	
     	stopService(new Intent(TaskBrowserActivity.this, 
                 NotifyingService.class));
     	
@@ -91,20 +100,8 @@ public class TaskBrowserActivity extends ListActivity {
 	}
 
 	private void initAndHideRunTaskPanel() {
-		initRunTaskPanel();
-		runTaskPanel.setVisibility(View.GONE);		
-	}
-
-	@Override
-	public void onConfigurationChanged(Configuration newConfig) {
-		super.onConfigurationChanged(newConfig);
-		
-		// doing nothing to the view when screen orientation changes
-	}
-	
-	private void initRunTaskPanel() {
-		
 		runTaskPanel = (LinearLayout)findViewById(R.id.runTaskPanel);
+		runTaskPanel.setVisibility(View.GONE);		
 		taskControlButton = (ImageButton) findViewById(R.id.control_icon);
 		hideButton = (ImageButton) findViewById(R.id.hide_panel_button);
 		hideButton.setVisibility(View.VISIBLE);
@@ -118,29 +115,35 @@ public class TaskBrowserActivity extends ListActivity {
     	mTaskDescription = (TextView) findViewById(R.id.task_description);
     	mTimeLeft = (TextView) findViewById(R.id.time_left);
     	mProgressBar = (ProgressBar) findViewById(R.id.progress_horizontal);
+	}
 
+	@Override
+	public void onConfigurationChanged(Configuration newConfig) {
+		super.onConfigurationChanged(newConfig);
+		// doing nothing to the view when screen orientation changes
+	}
+	
+	private void initRunTaskPanel(final String taskDescription) {
+		
     	taskControlButton.setOnClickListener(new View.OnClickListener() {
 
     	    public void onClick(View view) {
 
     	    	if (counter != null && taskControlButton.getTag(R.string.TASK_CONTROL_BUTTON_STATE_TYPE).equals(R.string.TO_STOP_STATE)){
-    	    		
     	    		resetTaskRun(taskControlButton);
-    	    		
     	    	} else {
-
-    	    		beginTask();
+    	    		beginTask(taskDescription);
     	    	}
     	    }
-
     	});
 	}
 
 	private void showAndStartRunTaskPanel(String taskDescription) {
 
+		initRunTaskPanel(taskDescription);
 		showRunTaskPanel(taskDescription);
 		resetTaskRun(taskControlButton);
-		beginTask();
+		beginTask(taskDescription);
 	}
 	
 	private void showRunTaskPanel(String taskDescription) {
@@ -149,7 +152,7 @@ public class TaskBrowserActivity extends ListActivity {
 		mTaskDescription.setText(taskDescription);
 	}
 	
-	private void beginTask() {
+	private void beginTask(final String taskDescription) {
 		
 		totalTime = mTasksDatabaseHelper.fetchTaskDurationSetting() * 60;
 		mProgressBar.setMax(totalTime);
@@ -159,14 +162,38 @@ public class TaskBrowserActivity extends ListActivity {
 		counter.start();
 		
 		hideButton.setVisibility(View.INVISIBLE);
-//		taskControlButton.setImageResource(R.drawable.btn_dialog_normal);
 		taskControlButton.setImageResource(R.drawable.stop);
 		taskControlButton.setTag(R.string.TASK_CONTROL_BUTTON_STATE_TYPE, R.string.TO_STOP_STATE);
-//		adjustDimensionsToDefault(taskControlButton);
+
+	    mConnection = new ServiceConnection() {
+
+			public void onServiceConnected(ComponentName className, IBinder service) {
+	            // This is called when the connection with the service has been
+	            // established, giving us the service object we can use to
+	            // interact with the service.  Because we have bound to a explicit
+	            // service that we know is running in our own process, we can
+	            // cast its IBinder to a concrete class and directly access it.
+	            mBoundService = ((NotifyingService.LocalBinder)service).getService();
+	            mBoundService.notifyTimeStarted(taskDescription);
+	        }
+
+	        public void onServiceDisconnected(ComponentName className) {
+	            // This is called when the connection with the service has been
+	            // unexpectedly disconnected -- that is, its process crashed.
+	            // Because it is running in our same process, we should never
+	            // see this happen.
+	            mBoundService = null;
+	        }
+	    };
 		
-		startService(new Intent(TaskBrowserActivity.this, 
-                NotifyingService.class));
+		bindService(new Intent(TaskBrowserActivity.this, 
+				NotifyingService.class), 
+				mConnection, 
+				Context.BIND_AUTO_CREATE);
+		
 	}
+	
+	private NotifyingService mBoundService;
 	
     private void refreshTaskPanel() {
     	
@@ -199,8 +226,9 @@ public class TaskBrowserActivity extends ListActivity {
 		
 		resetProgressControl(taskControlButton);
 		
-		stopService(new Intent(TaskBrowserActivity.this, 
-                NotifyingService.class));
+		if(mBoundService != null){
+			mBoundService.cancelTaskNotification();
+		}
 	}
 
 	private void resetProgressControl(final ImageButton taskControlButton) {
@@ -372,6 +400,9 @@ public class TaskBrowserActivity extends ListActivity {
         
         menuItem = menu.add(0, MAIN_MENU_OPTIONS_ID, 0, R.string.menu_options);
         menuItem.setIcon(drawable.ic_menu_preferences);
+        
+        menuItem = menu.add(0, MAIN_MENU_QUIT_ID, 0, R.string.menu_quit);
+        menuItem.setIcon(drawable.ic_menu_close_clear_cancel);
         return true;
     }
 
@@ -395,6 +426,10 @@ public class TaskBrowserActivity extends ListActivity {
         	Intent i = new Intent(this, SettingsActivity.class);
 	        startActivityForResult(i, ACTIVITY_SET_OPTIONS);
         	return true;        	
+        
+        case MAIN_MENU_QUIT_ID:
+        	finish();
+        	return true;    
         }
        
         return super.onMenuItemSelected(featureId, item);
@@ -507,6 +542,8 @@ public class TaskBrowserActivity extends ListActivity {
     };
 
 	private ImageButton hideButton;
+
+	private ServiceConnection mConnection;
 	
     public class MyCount extends CountDownTimer{
 	    
@@ -532,6 +569,7 @@ public class TaskBrowserActivity extends ListActivity {
            	
            	if (timeStr.equals("00:00")){
            		beep();
+           		mBoundService.notifyTimeEnded();
     	    	endTimer();
            	}
 		}
