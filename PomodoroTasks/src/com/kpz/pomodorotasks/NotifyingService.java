@@ -27,7 +27,6 @@ public class NotifyingService extends Service {
     public void onCreate() {
         mNM = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
 
-        showNotification();
     }
     
     @Override
@@ -51,11 +50,12 @@ public class NotifyingService extends Service {
     // This is the object that receives interactions from clients.  See
     // RemoteService for a more complete example.
     private final IBinder mBinder = new LocalBinder();
+	private String mTaskDescription;
 
     /**
      * Show a notification while this service is running.
      */
-    private void showNotification() {
+    public void showNotification(String note) {
 
         Notification notification = new Notification(R.drawable.stat_happy, null,
                 System.currentTimeMillis());
@@ -66,11 +66,27 @@ public class NotifyingService extends Service {
 
         // Set the info for the views that show in the notification panel.
         notification.setLatestEventInfo(this, getText(R.string.app_name),
-                       null, contentIntent);
+                       note, contentIntent);
 
         // Send the notification.
         // We use a layout id because it is a unique number.  We use it later to cancel.
         mNM.notify(NOTIFICATION_ID, notification);
     }
+
+    
+	public void notifyTimeEnded() {
+
+		showNotification("Time's up. Task - " +  mTaskDescription);
+	}
+
+	public void notifyTimeStarted(String taskDescription) {
+
+		mTaskDescription = taskDescription;
+		showNotification("Clock is ticking. Task - " +  taskDescription);
+	}
+
+	public void cancelTaskNotification() {
+		showNotification("");
+	}
 }
 
