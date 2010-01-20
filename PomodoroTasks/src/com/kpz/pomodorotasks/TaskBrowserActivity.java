@@ -52,7 +52,8 @@ public class TaskBrowserActivity extends ListActivity {
 	private static final int MAIN_MENU_QUIT_ID = MAIN_MENU_DELETE_ALL_ID + 3;
 	
 	private static final int ONE_SEC = 1000;
-
+	private static final int FIVE_MIN_IN_SEC = 300;
+	
 	private static final String TAG = "PomodoroTasks";	
     
 	private ListView taskList;
@@ -60,7 +61,6 @@ public class TaskBrowserActivity extends ListActivity {
 	private TextView mTaskDescription;
 	private ProgressBar mProgressBar;
 	private TextView mTimeLeft;
-	private int totalTime;
 	private MyCount counter;
 	private ImageButton taskControlButton;
 	private Vibrator vibrator;
@@ -132,7 +132,7 @@ public class TaskBrowserActivity extends ListActivity {
     	    	if (counter != null && taskControlButton.getTag(R.string.TASK_CONTROL_BUTTON_STATE_TYPE).equals(R.string.TO_STOP_STATE)){
     	    		resetTaskRun(taskControlButton);
     	    	} else {
-    	    		beginTask(taskDescription);
+    	    		beginTimeTask(taskDescription);
     	    	}
     	    }
     	});
@@ -143,7 +143,7 @@ public class TaskBrowserActivity extends ListActivity {
 		initRunTaskPanel(taskDescription);
 		showRunTaskPanel(taskDescription);
 		resetTaskRun(taskControlButton);
-		beginTask(taskDescription);
+		beginTimeTask(taskDescription);
 	}
 	
 	private void showRunTaskPanel(String taskDescription) {
@@ -152,12 +152,24 @@ public class TaskBrowserActivity extends ListActivity {
 		mTaskDescription.setText(taskDescription);
 	}
 	
-	private void beginTask(final String taskDescription) {
+	private void beginTimeTask(String taskDescription){
 		
-		totalTime = mTasksDatabaseHelper.fetchTaskDurationSetting() * 60;
+		int totalTime = mTasksDatabaseHelper.fetchTaskDurationSetting() * 60;
+		beginTask(taskDescription, totalTime, true);
+	}
+	
+	private void beginBreakTask(){
+		
+		int totalTime = FIVE_MIN_IN_SEC;
+		beginTask("Take a Break", totalTime, false);
+	}
+	
+	private void beginTask(final String taskDescription, int totalTime, boolean isTimeTask) {
+	
+		mTaskDescription.setText(taskDescription);
+		
 		mProgressBar.setMax(totalTime);
-		
-		counter = new MyCount(totalTime * ONE_SEC, ONE_SEC, beepHandler);
+		counter = new MyCount(totalTime * ONE_SEC, ONE_SEC, beepHandler, isTimeTask);
 		//counter = new ProgressThread(handler);
 		counter.start();
 		
@@ -538,6 +550,37 @@ public class TaskBrowserActivity extends ListActivity {
 	        }
 	        
 	    	resetProgressControl(taskControlButton);
+	    	
+	    	boolean isTaskTime = msg.getData().getBoolean("TASK_TIME");
+	    	if(isTaskTime){
+	    		
+	        	final String[] items = {"Take 5 min break", "Cancel"};
+	    		AlertDialog.Builder builder = new AlertDialog.Builder(TaskBrowserActivity.this);
+	    		builder.setItems(items, new DialogInterface.OnClickListener() {
+	    		    public void onClick(DialogInterface dialog, int item) {
+	    		        
+	    		    	//Toast.makeText(getApplicationContext(), items[item], Toast.LENGTH_SHORT).show();
+	    		    	switch (item) {
+	    				case 0:
+	    					beginBreakTask();
+	    					break;
+
+	    				case 1:
+	    			        break;
+	    			        
+	    				default:
+	    					break;
+	    				}
+	    		        
+	    		    }
+	    		});
+	    		AlertDialog alert = builder.create();
+	    		alert.show();
+	    		
+	    	} else {
+	    		
+	    		mTaskDescription.setText("");
+	    	}
         }
     };
 
@@ -548,10 +591,12 @@ public class TaskBrowserActivity extends ListActivity {
     public class MyCount extends CountDownTimer{
 	    
 		private Handler mHandler;
+		private boolean isTaskTime;
 
-	    public MyCount(long millisInFuture, long countDownInterval, Handler handler) {
+		public MyCount(long millisInFuture, long countDownInterval, Handler handler, boolean isTaskTime) {
 	    	super(millisInFuture + ONE_SEC, countDownInterval);
 	    	this.mHandler = handler;
+	    	this.isTaskTime = isTaskTime;
 		}
 
 		@Override
@@ -576,8 +621,9 @@ public class TaskBrowserActivity extends ListActivity {
 
 		private void beep() {
 			Message msg = mHandler.obtainMessage();
-			Bundle emptyBundle = new Bundle();
-			msg.setData(emptyBundle);
+			Bundle bundle = new Bundle();
+			bundle.putBoolean("TASK_TIME", isTaskTime);
+			msg.setData(bundle);
 			mHandler.sendMessage(msg);
 		}
 		
