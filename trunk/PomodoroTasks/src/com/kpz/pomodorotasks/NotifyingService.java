@@ -59,7 +59,8 @@ public class NotifyingService extends Service {
 
         Notification notification = new Notification(R.drawable.stat_happy, null,
                 System.currentTimeMillis());
-
+        notification.flags = Notification.FLAG_ONGOING_EVENT;
+        
         // The PendingIntent to launch our activity if the user selects this notification
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
                 new Intent(this, TaskBrowserActivity.class), 0);
