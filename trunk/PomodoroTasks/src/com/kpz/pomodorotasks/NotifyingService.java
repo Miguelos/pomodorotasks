@@ -5,6 +5,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
 
@@ -52,14 +53,21 @@ public class NotifyingService extends Service {
     private final IBinder mBinder = new LocalBinder();
 	private String mTaskDescription;
 
-    /**
-     * Show a notification while this service is running.
-     */
     public void showNotification(String note) {
+    	showNotification(note, false);
+    }
+
+	private void showNotification(String note, boolean beep) {
 
         Notification notification = new Notification(R.drawable.stat_happy, null,
                 System.currentTimeMillis());
         notification.flags = Notification.FLAG_ONGOING_EVENT;
+        
+        if(beep){
+        	notification.sound = Uri.parse("android.resource://com.kpz.pomodorotasks/" + R.raw.freesoundprojectdotorg_32568__erh__indian_brass_pestle);
+            notification.vibrate = new long[] {0,100,200,300};
+            notification.defaults |= Notification.DEFAULT_LIGHTS;
+        }
         
         // The PendingIntent to launch our activity if the user selects this notification
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
@@ -72,12 +80,11 @@ public class NotifyingService extends Service {
         // Send the notification.
         // We use a layout id because it is a unique number.  We use it later to cancel.
         mNM.notify(NOTIFICATION_ID, notification);
-    }
-
-    
+		
+	}
+	
 	public void notifyTimeEnded() {
-
-		showNotification("Time's up. Task - " +  mTaskDescription);
+		showNotification("Time's up. Task - " +  mTaskDescription, true);
 	}
 
 	public void notifyTimeStarted(String taskDescription) {
@@ -86,8 +93,8 @@ public class NotifyingService extends Service {
 		showNotification("Clock is ticking. Task - " +  taskDescription);
 	}
 
-	public void cancelTaskNotification() {
-		showNotification("");
+	public void clearTaskNotification() {
+		showNotification(null);
 	}
 }
 
