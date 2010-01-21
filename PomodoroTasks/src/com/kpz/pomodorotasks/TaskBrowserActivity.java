@@ -10,7 +10,6 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.database.Cursor;
-import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
@@ -237,10 +236,6 @@ public class TaskBrowserActivity extends ListActivity {
     	}
 		
 		resetProgressControl(taskControlButton);
-		
-		if(mBoundService != null){
-			mBoundService.cancelTaskNotification();
-		}
 	}
 
 	private void resetProgressControl(final ImageButton taskControlButton) {
@@ -540,14 +535,7 @@ public class TaskBrowserActivity extends ListActivity {
     final Handler beepHandler = new Handler() {
         public void handleMessage(Message msg) {
 
-    		MediaPlayer mp = MediaPlayer.create(getBaseContext(), R.raw.freesoundprojectdotorg_32568__erh__indian_brass_pestle);
-	        mp.start();
-	        
-	        vibrator.vibrate(1000); 
-	        
-	        while(mp.isPlaying()){
-	        	
-	        }
+        	mBoundService.notifyTimeEnded();
 	        
 	    	resetProgressControl(taskControlButton);
 	    	
@@ -580,6 +568,9 @@ public class TaskBrowserActivity extends ListActivity {
 	    	} else {
 	    		
 	    		mTaskDescription.setText("");
+	    		if(mBoundService != null){
+	    			mBoundService.clearTaskNotification();
+	    		}
 	    	}
         }
     };
@@ -614,7 +605,6 @@ public class TaskBrowserActivity extends ListActivity {
            	
            	if (timeStr.equals("00:00")){
            		beep();
-           		mBoundService.notifyTimeEnded();
     	    	endTimer();
            	}
 		}
