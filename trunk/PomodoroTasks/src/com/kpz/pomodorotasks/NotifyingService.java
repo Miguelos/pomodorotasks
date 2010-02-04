@@ -59,7 +59,7 @@ public class NotifyingService extends Service {
 
 	private void showNotification(String note, boolean beep) {
 
-        Notification notification = new Notification(R.drawable.stat_happy, null,
+        Notification notification = new Notification(R.drawable.liltomato, null,
                 System.currentTimeMillis());
         notification.flags = Notification.FLAG_ONGOING_EVENT;
         
