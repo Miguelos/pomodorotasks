@@ -3,7 +3,7 @@
     android:versionCode="2"
     android:versionName="0.2">
     
-    <application android:icon="@drawable/launcher_1">
+    <application android:icon="@drawable/launcher_2">
     
         <service android:name=".NotifyingService" />
     
