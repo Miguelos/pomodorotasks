@@ -9,13 +9,13 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 
-import com.kpz.pomodorotasks.dao.TaskDatabaseAdapter;
+import com.kpz.pomodorotasks.map.TaskDatabaseMap;
 
 public class TaskEditActivity extends Activity {
 
-	private EditText mDescription;
+	private EditText description;
     private Long mRowId;
-    private TaskDatabaseAdapter mDbHelper;
+    private TaskDatabaseMap taskDatabaseMap;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,7 +34,7 @@ public class TaskEditActivity extends Activity {
 
     	    public void onClick(View view) {
     	    	saveState();
-    	    	((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(mDescription.getWindowToken(), 0);
+    	    	((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(description.getWindowToken(), 0);
     	        setResult(RESULT_OK);
     	        finish();
     	    }
@@ -46,7 +46,7 @@ public class TaskEditActivity extends Activity {
     	revertButton.setOnClickListener(new View.OnClickListener() {
 
     	    public void onClick(View view) {
-    	    	((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(mDescription.getWindowToken(), 0);
+    	    	((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(description.getWindowToken(), 0);
     	        setResult(RESULT_OK);
     	        finish();
     	    }
@@ -54,47 +54,47 @@ public class TaskEditActivity extends Activity {
 	}
 	
 	private void populateTaskEditText(Bundle savedInstanceState) {
-		mDescription = (EditText) findViewById(R.id.description);
-    	mRowId = savedInstanceState != null ? savedInstanceState.getLong(TaskDatabaseAdapter.KEY_ROWID) 
+		description = (EditText) findViewById(R.id.description);
+    	mRowId = savedInstanceState != null ? savedInstanceState.getLong(TaskDatabaseMap.KEY_ROWID) 
     	                                    : null;
     	if (mRowId == null) {
     	    Bundle extras = getIntent().getExtras();
-    	    mRowId = extras != null ? extras.getLong(TaskDatabaseAdapter.KEY_ROWID)
+    	    mRowId = extras != null ? extras.getLong(TaskDatabaseMap.KEY_ROWID)
     	                            : null;
     	}
     	populateFields();
 	}
 
 	private void initDatabaseConnection() {
-		mDbHelper = new TaskDatabaseAdapter(this);
-    	mDbHelper.open();
+		taskDatabaseMap = new TaskDatabaseMap(this);
+    	taskDatabaseMap.open();
 	}
     
     private void populateFields() {
         if (mRowId != null) {
-            Cursor task = mDbHelper.fetch(mRowId);
+            Cursor task = taskDatabaseMap.fetch(mRowId);
             startManagingCursor(task);
-            mDescription.setText(task.getString(
-    	            task.getColumnIndexOrThrow(TaskDatabaseAdapter.KEY_DESCRIPTION)));
+            description.setText(task.getString(
+    	            task.getColumnIndexOrThrow(TaskDatabaseMap.KEY_DESCRIPTION)));
         }
     }
     
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putLong(TaskDatabaseAdapter.KEY_ROWID, mRowId);
+        outState.putLong(TaskDatabaseMap.KEY_ROWID, mRowId);
     }
 
     private void saveState() {
-        String description = mDescription.getText().toString();
+        String desc = description.getText().toString();
 
         if (mRowId == null) {
-            long id = mDbHelper.createTask(description);
+            long id = taskDatabaseMap.createTask(desc);
             if (id > 0) {
                 mRowId = id;
             }
         } else {
-            mDbHelper.update(mRowId, description);
+            taskDatabaseMap.update(mRowId, desc);
         }
     }
 }

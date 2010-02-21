@@ -37,9 +37,11 @@ import android.widget.ListView;
 
 public class TouchInterceptor extends ListView {
     
-    private static final int HIGHER_BOUND_SPEED = 16;
-	private static final int LOWER_BOUND_SPEED = 2;
 	private static final String TAG = "PomodoroTasks";
+	
+	private static final int HIGHER_BOUND_SPEED = 16;
+	private static final int LOWER_BOUND_SPEED = 2;
+	
 	private ImageView mDragView;
     private WindowManager mWindowManager;
     private WindowManager.LayoutParams mWindowParams;

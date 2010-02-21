@@ -11,7 +11,7 @@ import android.os.IBinder;
 
 public class NotifyingService extends Service {
     private static final int NOTIFICATION_ID = R.layout.tasks_list;
-	private NotificationManager mNM;
+	private NotificationManager notificationManager;
 
     /**
      * Class for clients to access.  Because we know this service always
@@ -26,7 +26,7 @@ public class NotifyingService extends Service {
     
     @Override
     public void onCreate() {
-        mNM = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+        notificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
 
     }
     
@@ -40,7 +40,7 @@ public class NotifyingService extends Service {
     @Override
     public void onDestroy() {
     	
-        mNM.cancel(NOTIFICATION_ID);
+        notificationManager.cancel(NOTIFICATION_ID);
     }
 
     @Override
@@ -79,7 +79,7 @@ public class NotifyingService extends Service {
 
         // Send the notification.
         // We use a layout id because it is a unique number.  We use it later to cancel.
-        mNM.notify(NOTIFICATION_ID, notification);
+        notificationManager.notify(NOTIFICATION_ID, notification);
 		
 	}
 	

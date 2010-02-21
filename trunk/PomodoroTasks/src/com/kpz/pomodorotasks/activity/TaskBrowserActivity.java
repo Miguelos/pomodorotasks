@@ -15,7 +15,6 @@ import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
-import android.os.Vibrator;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -30,8 +29,8 @@ import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.SimpleCursorAdapter.ViewBinder;
 
-import com.kpz.pomodorotasks.dao.TaskDatabaseAdapter;
-import com.kpz.pomodorotasks.dao.TaskDatabaseAdapter.StatusType;
+import com.kpz.pomodorotasks.map.TaskDatabaseMap;
+import com.kpz.pomodorotasks.map.TaskDatabaseMap.StatusType;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -54,18 +53,18 @@ public class TaskBrowserActivity extends ListActivity {
 	private static final int ONE_SEC = 1000;
 	private static final int FIVE_MIN_IN_SEC = 300;
 	
-	private static final String TAG = "PomodoroTasks";	
-    
 	private ListView taskList;
-    private TaskDatabaseAdapter mTasksDatabaseHelper;
-	private TextView mTaskDescription;
-	private ProgressBar mProgressBar;
-	private TextView mTimeLeft;
-	private MyCount counter;
+    private TaskDatabaseMap taskDatabaseMap;
+	private TextView taskDescription;
+	private ProgressBar progressBar;
+	private TextView timeLeft;
+	private TaskTimer counter;
 	private ImageButton taskControlButton;
-	private Vibrator vibrator;
 	private Cursor taskListCursor;
 	private LinearLayout runTaskPanel;
+	private ImageButton hideButton;
+
+	private ServiceConnection connection;
 	
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -77,8 +76,8 @@ public class TaskBrowserActivity extends ListActivity {
     @Override
     protected void onDestroy() {
 
-    	if (mConnection != null){
-    		unbindService(mConnection);    		
+    	if (connection != null){
+    		unbindService(connection);    		
     	}
     	
     	stopService(new Intent(TaskBrowserActivity.this, 
@@ -90,8 +89,6 @@ public class TaskBrowserActivity extends ListActivity {
 	private void initView() {
 
 		setContentView(NOTIFICATION_ID);
-        
-        vibrator = (Vibrator)getSystemService(VIBRATOR_SERVICE);
         
         initDatabaseHelper();        
         initTasksList();
@@ -112,9 +109,9 @@ public class TaskBrowserActivity extends ListActivity {
 			}
 		});
 		
-    	mTaskDescription = (TextView) findViewById(R.id.task_description);
-    	mTimeLeft = (TextView) findViewById(R.id.time_left);
-    	mProgressBar = (ProgressBar) findViewById(R.id.progress_horizontal);
+    	taskDescription = (TextView) findViewById(R.id.task_description);
+    	timeLeft = (TextView) findViewById(R.id.time_left);
+    	progressBar = (ProgressBar) findViewById(R.id.progress_horizontal);
 	}
 
 	@Override
@@ -123,7 +120,7 @@ public class TaskBrowserActivity extends ListActivity {
 		// doing nothing to the view when screen orientation changes
 	}
 	
-	private void initRunTaskPanel(final String taskDescription) {
+	private void initRunTaskPanel(final String ptaskDescription) {
 		
     	taskControlButton.setOnClickListener(new View.OnClickListener() {
 
@@ -132,7 +129,7 @@ public class TaskBrowserActivity extends ListActivity {
     	    	if (counter != null && taskControlButton.getTag(R.string.TASK_CONTROL_BUTTON_STATE_TYPE).equals(R.string.TO_STOP_STATE)){
     	    		resetTaskRun(taskControlButton);
     	    	} else {
-    	    		beginTimeTask(taskDescription);
+    	    		beginTimeTask(ptaskDescription);
     	    	}
     	    }
     	});
@@ -146,15 +143,15 @@ public class TaskBrowserActivity extends ListActivity {
 		beginTimeTask(taskDescription);
 	}
 	
-	private void showRunTaskPanel(String taskDescription) {
+	private void showRunTaskPanel(String taskDesc) {
 		
 		runTaskPanel.setVisibility(View.VISIBLE);
-		mTaskDescription.setText(taskDescription);
+		taskDescription.setText(taskDesc);
 	}
 	
 	private void beginTimeTask(String taskDescription){
 		
-		int totalTime = mTasksDatabaseHelper.fetchTaskDurationSetting() * 60;
+		int totalTime = taskDatabaseMap.fetchTaskDurationSetting() * 60;
 		beginTask(taskDescription, totalTime, true);
 	}
 	
@@ -164,12 +161,12 @@ public class TaskBrowserActivity extends ListActivity {
 		beginTask("Take a Break", totalTime, false);
 	}
 	
-	private void beginTask(final String taskDescription, int totalTime, boolean isTimeTask) {
+	private void beginTask(final String taskDesc, int totalTime, boolean isTimeTask) {
 	
-		mTaskDescription.setText(taskDescription);
+		taskDescription.setText(taskDesc);
 		
-		mProgressBar.setMax(totalTime);
-		counter = new MyCount(totalTime * ONE_SEC, ONE_SEC, beepHandler, isTimeTask);
+		progressBar.setMax(totalTime);
+		counter = new TaskTimer(totalTime * ONE_SEC, ONE_SEC, beepHandler, isTimeTask);
 		//counter = new ProgressThread(handler);
 		counter.start();
 		
@@ -177,7 +174,7 @@ public class TaskBrowserActivity extends ListActivity {
 		taskControlButton.setImageResource(R.drawable.stop);
 		taskControlButton.setTag(R.string.TASK_CONTROL_BUTTON_STATE_TYPE, R.string.TO_STOP_STATE);
 
-	    mConnection = new ServiceConnection() {
+	    connection = new ServiceConnection() {
 
 			public void onServiceConnected(ComponentName className, IBinder service) {
 	            // This is called when the connection with the service has been
@@ -186,7 +183,7 @@ public class TaskBrowserActivity extends ListActivity {
 	            // service that we know is running in our own process, we can
 	            // cast its IBinder to a concrete class and directly access it.
 	            mBoundService = ((NotifyingService.LocalBinder)service).getService();
-	            mBoundService.notifyTimeStarted(taskDescription);
+	            mBoundService.notifyTimeStarted(taskDesc);
 	        }
 
 	        public void onServiceDisconnected(ComponentName className) {
@@ -200,7 +197,7 @@ public class TaskBrowserActivity extends ListActivity {
 		
 		bindService(new Intent(TaskBrowserActivity.this, 
 				NotifyingService.class), 
-				mConnection, 
+				connection, 
 				Context.BIND_AUTO_CREATE);
 		
 	}
@@ -209,7 +206,7 @@ public class TaskBrowserActivity extends ListActivity {
 	
     private void refreshTaskPanel() {
     	
-    	String text = mTaskDescription.getText().toString();
+    	String text = taskDescription.getText().toString();
     	
     	if (text == null || text.equals("")){
     		return;
@@ -220,14 +217,14 @@ public class TaskBrowserActivity extends ListActivity {
         for (int i = count - 1; i >= 0; i--) {
 
         	Cursor cursor = (Cursor)getListAdapter().getItem(i);
-        	String taskDescription = cursor.getString(cursor.getColumnIndex(TaskDatabaseAdapter.KEY_DESCRIPTION));
+        	String taskDescription = cursor.getString(cursor.getColumnIndex(TaskDatabaseMap.KEY_DESCRIPTION));
             if(taskDescription.equals(text)){
 				exists = true;
             }
         }    
         
         if (!exists){
-        	mTaskDescription.setText("");
+        	taskDescription.setText("");
         }
 	}
 
@@ -241,7 +238,7 @@ public class TaskBrowserActivity extends ListActivity {
 
 	private void resetProgressControl(final ImageButton taskControlButton) {
 		resetTimeElapsed();
-		mProgressBar.setProgress(0);
+		progressBar.setProgress(0);
 //        taskControlButton.setImageResource(drawable.ic_media_play);
         taskControlButton.setImageResource(R.drawable.play);
         taskControlButton.setTag(R.string.TASK_CONTROL_BUTTON_STATE_TYPE, R.string.TO_PLAY_STATE);
@@ -251,7 +248,7 @@ public class TaskBrowserActivity extends ListActivity {
 
 	private void resetTimeElapsed() {
 		
-		mTimeLeft.setText(mTasksDatabaseHelper.fetchTaskDurationSetting() + ":00");
+		timeLeft.setText(taskDatabaseMap.fetchTaskDurationSetting() + ":00");
 	}
 
 	private boolean isRunTaskPanelInitialized() {
@@ -259,7 +256,7 @@ public class TaskBrowserActivity extends ListActivity {
 	}
 	
 	private boolean isTaskRunning() {
-		return mProgressBar.getProgress() != 0;
+		return progressBar.getProgress() != 0;
 	}
 
 	private void adjustDimensionsToDefault(final ImageButton taskControlButton) {
@@ -275,11 +272,11 @@ public class TaskBrowserActivity extends ListActivity {
 	
     private void populateTasksList() {
     	
-    	Cursor tasksCursor = mTasksDatabaseHelper.fetchAll();
+    	Cursor tasksCursor = taskDatabaseMap.fetchAll();
         startManagingCursor(tasksCursor);
         
         // Create an array to specify the fields we want to display in the list (only Description)
-        String[] from = new String[]{TaskDatabaseAdapter.KEY_DESCRIPTION, TaskDatabaseAdapter.KEY_STATUS};
+        String[] from = new String[]{TaskDatabaseMap.KEY_DESCRIPTION, TaskDatabaseMap.KEY_STATUS};
         
         // and an array of the fields we want to bind those fields to (in this case just task_description)
         int[] to = new int[]{R.id.task_description, R.id.taskRow};
@@ -324,8 +321,8 @@ public class TaskBrowserActivity extends ListActivity {
     	textView.getPaint().setStrikeThruText(true);
     	
     	Cursor cursor = (Cursor)getListAdapter().getItem(which);
-		int rowId = Integer.parseInt(cursor.getString(cursor.getColumnIndex(TaskDatabaseAdapter.KEY_ROWID)));
-		mTasksDatabaseHelper.updateStatus(rowId, true);
+		int rowId = Integer.parseInt(cursor.getString(cursor.getColumnIndex(TaskDatabaseMap.KEY_ROWID)));
+		taskDatabaseMap.updateStatus(rowId, true);
 		refreshTasksList();
 	}
 	
@@ -340,8 +337,8 @@ public class TaskBrowserActivity extends ListActivity {
     	textView.getPaint().setStrikeThruText(false);
     	
     	Cursor cursor = (Cursor)getListAdapter().getItem(which);
-		int rowId = Integer.parseInt(cursor.getString(cursor.getColumnIndex(TaskDatabaseAdapter.KEY_ROWID)));
-		mTasksDatabaseHelper.updateStatus(rowId, false);
+		int rowId = Integer.parseInt(cursor.getString(cursor.getColumnIndex(TaskDatabaseMap.KEY_ROWID)));
+		taskDatabaseMap.updateStatus(rowId, false);
 		refreshTasksList();
 	}
 	
@@ -361,8 +358,8 @@ public class TaskBrowserActivity extends ListActivity {
     };
 
 	private void initDatabaseHelper() {
-		mTasksDatabaseHelper = new TaskDatabaseAdapter(this);
-        mTasksDatabaseHelper.open();
+		taskDatabaseMap = new TaskDatabaseMap(this);
+        taskDatabaseMap.open();
 	}
 
 	private void initAddTaskInput() {
@@ -391,7 +388,7 @@ public class TaskBrowserActivity extends ListActivity {
 			}
 
 			private void createNewTask(final String noteDescription) {
-            	mTasksDatabaseHelper.createTask(noteDescription);
+            	taskDatabaseMap.createTask(noteDescription);
 			}
         });
 	}
@@ -419,13 +416,13 @@ public class TaskBrowserActivity extends ListActivity {
         switch(item.getItemId()) {
 
         case MAIN_MENU_DELETED_COMPLETED_ID:
-        	mTasksDatabaseHelper.deleteCompleted();
+        	taskDatabaseMap.deleteCompleted();
 	        refreshTasksList();
 	        refreshTaskPanel();
         	return true;
         	
         case MAIN_MENU_DELETE_ALL_ID:
-        	mTasksDatabaseHelper.deleteAll();
+        	taskDatabaseMap.deleteAll();
 	        refreshTasksList();
 	        refreshTaskPanel();
 	        return true;
@@ -449,7 +446,7 @@ public class TaskBrowserActivity extends ListActivity {
     	super.onListItemClick(l, v, position, id);
 
     	Cursor cursor = (Cursor)getListAdapter().getItem(new Long(position).intValue());
-    	final Long rowId = new Long(cursor.getString(cursor.getColumnIndex(TaskDatabaseAdapter.KEY_ROWID)));
+    	final Long rowId = new Long(cursor.getString(cursor.getColumnIndex(TaskDatabaseMap.KEY_ROWID)));
 		
     	final String[] items = {"Start", "Edit", "Delete"};
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -466,12 +463,12 @@ public class TaskBrowserActivity extends ListActivity {
 					
 				case 1:
 					Intent i = new Intent(TaskBrowserActivity.this, TaskEditActivity.class);
-			        i.putExtra(TaskDatabaseAdapter.KEY_ROWID, rowId);
+			        i.putExtra(TaskDatabaseMap.KEY_ROWID, rowId);
 			        startActivityForResult(i, ACTIVITY_EDIT);
 			        break;
 			        
 				case 2:
-			        mTasksDatabaseHelper.delete(rowId);
+			        taskDatabaseMap.delete(rowId);
 			        refreshTasksList();
 			        break;
 			        
@@ -523,13 +520,13 @@ public class TaskBrowserActivity extends ListActivity {
 		private void move(int from, int to) {
 			
 			Cursor cursor = (Cursor)getListAdapter().getItem(from);
-        	int fromSeq = Integer.parseInt(cursor.getString(cursor.getColumnIndex(TaskDatabaseAdapter.KEY_SEQUENCE)));
+        	int fromSeq = Integer.parseInt(cursor.getString(cursor.getColumnIndex(TaskDatabaseMap.KEY_SEQUENCE)));
 
         	cursor = (Cursor)getListAdapter().getItem(to);
-        	int toSeq = Integer.parseInt(cursor.getString(cursor.getColumnIndex(TaskDatabaseAdapter.KEY_SEQUENCE)));
-    		int toRowId = Integer.parseInt(cursor.getString(cursor.getColumnIndex(TaskDatabaseAdapter.KEY_ROWID)));
+        	int toSeq = Integer.parseInt(cursor.getString(cursor.getColumnIndex(TaskDatabaseMap.KEY_SEQUENCE)));
+    		int toRowId = Integer.parseInt(cursor.getString(cursor.getColumnIndex(TaskDatabaseMap.KEY_ROWID)));
         	
-        	mTasksDatabaseHelper.move(fromSeq, toRowId, toSeq);
+        	taskDatabaseMap.move(fromSeq, toRowId, toSeq);
 		}
     };
 
@@ -568,7 +565,7 @@ public class TaskBrowserActivity extends ListActivity {
 	    		
 	    	} else {
 	    		
-	    		mTaskDescription.setText("");
+	    		taskDescription.setText("");
 	    		if(mBoundService != null){
 	    			mBoundService.clearTaskNotification();
 	    		}
@@ -576,16 +573,12 @@ public class TaskBrowserActivity extends ListActivity {
         }
     };
 
-	private ImageButton hideButton;
-
-	private ServiceConnection mConnection;
-	
-    public class MyCount extends CountDownTimer{
+    public class TaskTimer extends CountDownTimer{
 	    
 		private Handler mHandler;
 		private boolean isTaskTime;
 
-		public MyCount(long millisInFuture, long countDownInterval, Handler handler, boolean isTaskTime) {
+		public TaskTimer(long millisInFuture, long countDownInterval, Handler handler, boolean isTaskTime) {
 	    	super(millisInFuture + ONE_SEC, countDownInterval);
 	    	this.mHandler = handler;
 	    	this.isTaskTime = isTaskTime;
@@ -601,8 +594,8 @@ public class TaskBrowserActivity extends ListActivity {
 			
 			final DateFormat dateFormat = new SimpleDateFormat("mm:ss");
             String timeStr = dateFormat.format(new Date(millisUntilFinished - ONE_SEC));
-            mTimeLeft.setText(timeStr);
-           	mProgressBar.setProgress(new Long(millisUntilFinished / ONE_SEC).intValue());
+            timeLeft.setText(timeStr);
+           	progressBar.setProgress(new Long(millisUntilFinished / ONE_SEC).intValue());
            	
            	if (timeStr.equals("00:00")){
            		beep();
