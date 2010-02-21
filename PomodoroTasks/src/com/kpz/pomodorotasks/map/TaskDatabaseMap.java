@@ -1,4 +1,4 @@
-package com.kpz.pomodorotasks.dao;
+package com.kpz.pomodorotasks.map;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -8,7 +8,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
-public class TaskDatabaseAdapter {
+public class TaskDatabaseMap {
 
 	private DatabaseHelper mDbHelper;
 	private SQLiteDatabase mDb;
@@ -110,7 +110,7 @@ public class TaskDatabaseAdapter {
 	 * @param ctx
 	 *            the Context within which to work
 	 */
-	public TaskDatabaseAdapter(Context ctx) {
+	public TaskDatabaseMap(Context ctx) {
 		this.mCtx = ctx;
 	}
 
@@ -124,7 +124,7 @@ public class TaskDatabaseAdapter {
 	 * @throws SQLException
 	 *             if the database could be neither opened or created
 	 */
-	public TaskDatabaseAdapter open() throws SQLException {
+	public TaskDatabaseMap open() throws SQLException {
 		mDbHelper = new DatabaseHelper(mCtx);
 		mDb = mDbHelper.getWritableDatabase();
 		return this;

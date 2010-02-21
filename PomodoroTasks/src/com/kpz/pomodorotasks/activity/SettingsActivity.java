@@ -8,11 +8,11 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 
-import com.kpz.pomodorotasks.dao.TaskDatabaseAdapter;
+import com.kpz.pomodorotasks.map.TaskDatabaseMap;
 
 public class SettingsActivity extends Activity {
 
-    private TaskDatabaseAdapter mDbHelper;
+    private TaskDatabaseMap taskDatabaseMap;
 	private SeekBar mSeekBar;
 	private TextView mDurationText;
 	private int mDuration;
@@ -30,7 +30,7 @@ public class SettingsActivity extends Activity {
 	private void initTimeDurationSetting() {
 		mDurationText = (TextView)findViewById(R.id.duration);
         mSeekBar = (SeekBar)findViewById(R.id.seek);
-        mDuration = mDbHelper.fetchTaskDurationSetting();
+        mDuration = taskDatabaseMap.fetchTaskDurationSetting();
         mDurationText.setText(mDuration + " min");
         mSeekBar.setProgress(mDuration);
         mSeekBar.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
@@ -61,8 +61,8 @@ public class SettingsActivity extends Activity {
 	}
 	
 	private void initDatabaseConnection() {
-		mDbHelper = new TaskDatabaseAdapter(this);
-    	mDbHelper.open();
+		taskDatabaseMap = new TaskDatabaseMap(this);
+    	taskDatabaseMap.open();
 	}
     
     @Override
@@ -72,6 +72,6 @@ public class SettingsActivity extends Activity {
     }
     
     private void saveState() {
-        mDbHelper.updateTaskDurationSetting(mDuration);
+        taskDatabaseMap.updateTaskDurationSetting(mDuration);
     }
 }
