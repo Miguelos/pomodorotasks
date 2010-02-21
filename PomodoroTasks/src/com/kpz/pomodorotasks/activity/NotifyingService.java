@@ -1,4 +1,4 @@
-package com.kpz.pomodorotasks;
+package com.kpz.pomodorotasks.activity;
 
 import android.app.Notification;
 import android.app.NotificationManager;

@@ -1,4 +1,4 @@
-package com.kpz.pomodorotasks;
+package com.kpz.pomodorotasks.activity;
 
 import android.R.drawable;
 import android.app.AlertDialog;
@@ -30,7 +30,8 @@ import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.SimpleCursorAdapter.ViewBinder;
 
-import com.kpz.pomodorotasks.TaskDatabaseAdapter.StatusType;
+import com.kpz.pomodorotasks.dao.TaskDatabaseAdapter;
+import com.kpz.pomodorotasks.dao.TaskDatabaseAdapter.StatusType;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;

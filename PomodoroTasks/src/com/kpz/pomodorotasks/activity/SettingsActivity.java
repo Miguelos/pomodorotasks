@@ -1,4 +1,4 @@
-package com.kpz.pomodorotasks;
+package com.kpz.pomodorotasks.activity;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -7,6 +7,8 @@ import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.SeekBar.OnSeekBarChangeListener;
+
+import com.kpz.pomodorotasks.dao.TaskDatabaseAdapter;
 
 public class SettingsActivity extends Activity {
 
@@ -18,7 +20,7 @@ public class SettingsActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
     	super.onCreate(savedInstanceState);
-    	setContentView(R.layout.options_set);
+    	setContentView(R.layout.settings);
     	
     	initDatabaseConnection();
     	initBackButton();
