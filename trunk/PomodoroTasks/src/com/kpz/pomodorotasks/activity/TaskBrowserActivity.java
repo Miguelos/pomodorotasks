@@ -3,38 +3,26 @@ package com.kpz.pomodorotasks.activity;
 import android.R.drawable;
 import android.app.AlertDialog;
 import android.app.ListActivity;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.os.CountDownTimer;
-import android.os.Handler;
-import android.os.IBinder;
-import android.os.Message;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.ProgressBar;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.SimpleCursorAdapter.ViewBinder;
 
 import com.kpz.pomodorotasks.map.TaskDatabaseMap;
 import com.kpz.pomodorotasks.map.TaskDatabaseMap.StatusType;
-
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 public class TaskBrowserActivity extends ListActivity {
     
@@ -50,19 +38,10 @@ public class TaskBrowserActivity extends ListActivity {
 	private static final int MAIN_MENU_OPTIONS_ID = MAIN_MENU_DELETE_ALL_ID + 2;
 	private static final int MAIN_MENU_QUIT_ID = MAIN_MENU_DELETE_ALL_ID + 3;
 	
-	private static final int ONE_SEC = 1000;
-	private static final int FIVE_MIN_IN_SEC = 300;
-	
+	private TaskPanel taskPanel;
 	private ListView taskList;
     private TaskDatabaseMap taskDatabaseMap;
-	private TextView taskDescription;
-	private ProgressBar progressBar;
-	private TextView timeLeft;
-	private TaskTimer counter;
-	private ImageButton taskControlButton;
 	private Cursor taskListCursor;
-	private LinearLayout runTaskPanel;
-	private ImageButton hideButton;
 
 	private ServiceConnection connection;
 	
@@ -97,21 +76,9 @@ public class TaskBrowserActivity extends ListActivity {
 	}
 
 	private void initAndHideRunTaskPanel() {
-		runTaskPanel = (LinearLayout)findViewById(R.id.runTaskPanel);
-		runTaskPanel.setVisibility(View.GONE);		
-		taskControlButton = (ImageButton) findViewById(R.id.control_icon);
-		hideButton = (ImageButton) findViewById(R.id.hide_panel_button);
-		hideButton.setVisibility(View.VISIBLE);
-		hideButton.setOnClickListener(new View.OnClickListener() {
-			
-			public void onClick(View v) {
-				runTaskPanel.setVisibility(View.GONE);
-			}
-		});
 		
-    	taskDescription = (TextView) findViewById(R.id.task_description);
-    	timeLeft = (TextView) findViewById(R.id.time_left);
-    	progressBar = (ProgressBar) findViewById(R.id.progress_horizontal);
+		taskPanel = new TaskPanel(this, taskDatabaseMap);
+		taskPanel.hidePanel();
 	}
 
 	@Override
@@ -120,149 +87,9 @@ public class TaskBrowserActivity extends ListActivity {
 		// doing nothing to the view when screen orientation changes
 	}
 	
-	private void initRunTaskPanel(final String ptaskDescription) {
-		
-    	taskControlButton.setOnClickListener(new View.OnClickListener() {
+	private void startTask(String taskDescription) {
 
-    	    public void onClick(View view) {
-
-    	    	if (counter != null && taskControlButton.getTag(R.string.TASK_CONTROL_BUTTON_STATE_TYPE).equals(R.string.TO_STOP_STATE)){
-    	    		resetTaskRun(taskControlButton);
-    	    	} else {
-    	    		beginTimeTask(ptaskDescription);
-    	    	}
-    	    }
-    	});
-	}
-
-	private void showAndStartRunTaskPanel(String taskDescription) {
-
-		initRunTaskPanel(taskDescription);
-		showRunTaskPanel(taskDescription);
-		resetTaskRun(taskControlButton);
-		beginTimeTask(taskDescription);
-	}
-	
-	private void showRunTaskPanel(String taskDesc) {
-		
-		runTaskPanel.setVisibility(View.VISIBLE);
-		taskDescription.setText(taskDesc);
-	}
-	
-	private void beginTimeTask(String taskDescription){
-		
-		int totalTime = taskDatabaseMap.fetchTaskDurationSetting() * 60;
-		beginTask(taskDescription, totalTime, true);
-	}
-	
-	private void beginBreakTask(){
-		
-		int totalTime = FIVE_MIN_IN_SEC;
-		beginTask("Take a Break", totalTime, false);
-	}
-	
-	private void beginTask(final String taskDesc, int totalTime, boolean isTimeTask) {
-	
-		taskDescription.setText(taskDesc);
-		
-		progressBar.setMax(totalTime);
-		counter = new TaskTimer(totalTime * ONE_SEC, ONE_SEC, beepHandler, isTimeTask);
-		//counter = new ProgressThread(handler);
-		counter.start();
-		
-		hideButton.setVisibility(View.INVISIBLE);
-		taskControlButton.setImageResource(R.drawable.stop);
-		taskControlButton.setTag(R.string.TASK_CONTROL_BUTTON_STATE_TYPE, R.string.TO_STOP_STATE);
-
-	    connection = new ServiceConnection() {
-
-			public void onServiceConnected(ComponentName className, IBinder service) {
-	            // This is called when the connection with the service has been
-	            // established, giving us the service object we can use to
-	            // interact with the service.  Because we have bound to a explicit
-	            // service that we know is running in our own process, we can
-	            // cast its IBinder to a concrete class and directly access it.
-	            mBoundService = ((NotifyingService.LocalBinder)service).getService();
-	            mBoundService.notifyTimeStarted(taskDesc);
-	        }
-
-	        public void onServiceDisconnected(ComponentName className) {
-	            // This is called when the connection with the service has been
-	            // unexpectedly disconnected -- that is, its process crashed.
-	            // Because it is running in our same process, we should never
-	            // see this happen.
-	            mBoundService = null;
-	        }
-	    };
-		
-		bindService(new Intent(TaskBrowserActivity.this, 
-				NotifyingService.class), 
-				connection, 
-				Context.BIND_AUTO_CREATE);
-		
-	}
-	
-	private NotifyingService mBoundService;
-	
-    private void refreshTaskPanel() {
-    	
-    	String text = taskDescription.getText().toString();
-    	
-    	if (text == null || text.equals("")){
-    		return;
-    	}
-    	
-    	boolean exists = false;
-    	final int count = getListAdapter().getCount();
-        for (int i = count - 1; i >= 0; i--) {
-
-        	Cursor cursor = (Cursor)getListAdapter().getItem(i);
-        	String taskDescription = cursor.getString(cursor.getColumnIndex(TaskDatabaseMap.KEY_DESCRIPTION));
-            if(taskDescription.equals(text)){
-				exists = true;
-            }
-        }    
-        
-        if (!exists){
-        	taskDescription.setText("");
-        }
-	}
-
-	private void resetTaskRun(final ImageButton taskControlButton) {
-		if (counter != null){
-    		counter.cancel();
-    	}
-		
-		resetProgressControl(taskControlButton);
-	}
-
-	private void resetProgressControl(final ImageButton taskControlButton) {
-		resetTimeElapsed();
-		progressBar.setProgress(0);
-//        taskControlButton.setImageResource(drawable.ic_media_play);
-        taskControlButton.setImageResource(R.drawable.play);
-        taskControlButton.setTag(R.string.TASK_CONTROL_BUTTON_STATE_TYPE, R.string.TO_PLAY_STATE);
-        adjustDimensionsToDefault(taskControlButton);
-        hideButton.setVisibility(View.VISIBLE);
-	}
-
-	private void resetTimeElapsed() {
-		
-		timeLeft.setText(taskDatabaseMap.fetchTaskDurationSetting() + ":00");
-	}
-
-	private boolean isRunTaskPanelInitialized() {
-		return runTaskPanel.getVisibility() == View.VISIBLE;
-	}
-	
-	private boolean isTaskRunning() {
-		return progressBar.getProgress() != 0;
-	}
-
-	private void adjustDimensionsToDefault(final ImageButton taskControlButton) {
-		Button leftButton = (Button) findViewById(R.id.left_text_button);
-		taskControlButton.getLayoutParams().height = leftButton.getHeight();
-		taskControlButton.getLayoutParams().width = leftButton.getWidth();
+		taskPanel.startTask(taskDescription);
 	}
 	
 	private void initTasksList() {
@@ -418,13 +245,17 @@ public class TaskBrowserActivity extends ListActivity {
         case MAIN_MENU_DELETED_COMPLETED_ID:
         	taskDatabaseMap.deleteCompleted();
 	        refreshTasksList();
-	        refreshTaskPanel();
+			if (!isTaskExists(taskPanel.getCurrentTaskText())){
+				taskPanel.refreshTaskPanel();
+			}
         	return true;
         	
         case MAIN_MENU_DELETE_ALL_ID:
         	taskDatabaseMap.deleteAll();
 	        refreshTasksList();
-	        refreshTaskPanel();
+			if (!isTaskExists(taskPanel.getCurrentTaskText())){
+				taskPanel.refreshTaskPanel();				
+			}
 	        return true;
         	
         case MAIN_MENU_OPTIONS_ID:
@@ -458,7 +289,7 @@ public class TaskBrowserActivity extends ListActivity {
 		    	switch (item) {
 				case 0:
 			        TextView textView = (TextView)v.findViewById(R.id.task_description);
-			        showAndStartRunTaskPanel(textView.getText().toString());
+			        startTask(textView.getText().toString());
 					break;
 					
 				case 1:
@@ -490,15 +321,32 @@ public class TaskBrowserActivity extends ListActivity {
         switch (requestCode) {
 			case ACTIVITY_SET_OPTIONS:
 				
-				if (isRunTaskPanelInitialized() && !isTaskRunning()){
-					resetTimeElapsed();
-				}
+				taskPanel.resetTimeLeftIfTaskNotRunning();
 				break;
 			case ACTIVITY_EDIT:
 				refreshTasksList();
 				break;
 		}
     }
+    
+	public boolean isTaskExists(String text) {
+
+		if (text == null || text.equals("")){
+    		return false;
+    	}
+		
+		boolean exists = false;
+    	final int count = getListAdapter().getCount();
+        for (int i = count - 1; i >= 0; i--) {
+
+        	Cursor cursor = (Cursor)getListAdapter().getItem(i);
+        	String taskDescription = cursor.getString(cursor.getColumnIndex(TaskDatabaseMap.KEY_DESCRIPTION));
+            if(taskDescription.equals(text)){
+				exists = true;
+            }
+        }
+		return exists;
+	}
     
     private TouchInterceptor.DropListener mDropListener = new TouchInterceptor.DropListener() {
 
@@ -529,94 +377,4 @@ public class TaskBrowserActivity extends ListActivity {
         	taskDatabaseMap.move(fromSeq, toRowId, toSeq);
 		}
     };
-
-    final Handler beepHandler = new Handler() {
-        public void handleMessage(Message msg) {
-
-        	mBoundService.notifyTimeEnded();
-	        
-	    	resetProgressControl(taskControlButton);
-	    	
-	    	boolean isTaskTime = msg.getData().getBoolean("TASK_TIME");
-	    	if(isTaskTime){
-	    		
-	        	final String[] items = {"Take 5 min break", "Cancel"};
-	    		AlertDialog.Builder builder = new AlertDialog.Builder(TaskBrowserActivity.this);
-	    		builder.setItems(items, new DialogInterface.OnClickListener() {
-	    		    public void onClick(DialogInterface dialog, int item) {
-	    		        
-	    		    	//Toast.makeText(getApplicationContext(), items[item], Toast.LENGTH_SHORT).show();
-	    		    	switch (item) {
-	    				case 0:
-	    					beginBreakTask();
-	    					break;
-
-	    				case 1:
-	    			        break;
-	    			        
-	    				default:
-	    					break;
-	    				}
-	    		        
-	    		    }
-	    		});
-	    		AlertDialog alert = builder.create();
-	    		alert.show();
-	    		
-	    	} else {
-	    		
-	    		taskDescription.setText("");
-	    		if(mBoundService != null){
-	    			mBoundService.clearTaskNotification();
-	    		}
-	    	}
-        }
-    };
-
-    public class TaskTimer extends CountDownTimer{
-	    
-		private Handler mHandler;
-		private boolean isTaskTime;
-
-		public TaskTimer(long millisInFuture, long countDownInterval, Handler handler, boolean isTaskTime) {
-	    	super(millisInFuture + ONE_SEC, countDownInterval);
-	    	this.mHandler = handler;
-	    	this.isTaskTime = isTaskTime;
-		}
-
-		@Override
-	    public void onTick(long millisUntilFinished) {
-	    	
-	    	incrementProgress(millisUntilFinished);
-	    }
-
-		private void incrementProgress(long millisUntilFinished) {
-			
-			final DateFormat dateFormat = new SimpleDateFormat("mm:ss");
-            String timeStr = dateFormat.format(new Date(millisUntilFinished - ONE_SEC));
-            timeLeft.setText(timeStr);
-           	progressBar.setProgress(new Long(millisUntilFinished / ONE_SEC).intValue());
-           	
-           	if (timeStr.equals("00:00")){
-           		beep();
-    	    	endTimer();
-           	}
-		}
-
-		private void beep() {
-			Message msg = mHandler.obtainMessage();
-			Bundle bundle = new Bundle();
-			bundle.putBoolean("TASK_TIME", isTaskTime);
-			msg.setData(bundle);
-			mHandler.sendMessage(msg);
-		}
-		
-		private void endTimer() {
-			cancel();
-		}
-		@Override
-		public void onFinish() {
-			// do nothing
-		}
-    }
 }
