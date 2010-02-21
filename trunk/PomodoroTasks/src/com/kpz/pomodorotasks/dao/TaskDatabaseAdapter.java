@@ -1,4 +1,4 @@
-package com.kpz.pomodorotasks;
+package com.kpz.pomodorotasks.dao;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -28,7 +28,7 @@ public class TaskDatabaseAdapter {
 	public static final String KEY_CONFIG_NAME = "name";	
 	public static final String KEY_CONFIG_VALUE = "value";	
 
-	enum StatusType {
+	public enum StatusType {
 
 		OPEN("Open"), COMPLETED("Completed");
 

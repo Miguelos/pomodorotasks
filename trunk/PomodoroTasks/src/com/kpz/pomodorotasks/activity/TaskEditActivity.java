@@ -1,4 +1,4 @@
-package com.kpz.pomodorotasks;
+package com.kpz.pomodorotasks.activity;
 
 import android.app.Activity;
 import android.content.Context;
@@ -8,6 +8,8 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+
+import com.kpz.pomodorotasks.dao.TaskDatabaseAdapter;
 
 public class TaskEditActivity extends Activity {
 

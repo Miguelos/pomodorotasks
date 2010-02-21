@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.kpz.pomodorotasks;
+package com.kpz.pomodorotasks.activity;
 
 import android.content.Context;
 import android.content.res.Resources;

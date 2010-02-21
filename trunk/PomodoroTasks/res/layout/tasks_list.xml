@@ -78,7 +78,7 @@
 	    </RelativeLayout>
     </LinearLayout>
     
-    <com.kpz.pomodorotasks.TouchInterceptor
+    <com.kpz.pomodorotasks.activity.TouchInterceptor
         android:id="@android:id/list"
         android:layout_width="fill_parent"
         android:drawSelectorOnTop="false"
