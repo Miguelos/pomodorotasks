@@ -10,7 +10,7 @@ import android.os.Binder;
 import android.os.IBinder;
 
 public class NotifyingService extends Service {
-    private static final int NOTIFICATION_ID = R.layout.tasks_list;
+    private static final int NOTIFICATION_ID = R.layout.task_list;
 	private NotificationManager notificationManager;
 
     /**
