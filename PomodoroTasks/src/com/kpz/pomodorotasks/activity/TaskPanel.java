@@ -57,7 +57,7 @@ public class TaskPanel {
     	taskDescription = (TextView)pActivity.findViewById(R.id.task_description);
     	timeLeft = (TextView)pActivity.findViewById(R.id.time_left);
     	progressBar = (ProgressBar)pActivity.findViewById(R.id.progress_horizontal);
-    	leftButton = (Button) pActivity.findViewById(R.id.left_text_button);
+    	addTaskButton = (Button) pActivity.findViewById(R.id.add_task_input_button);
     	taskDatabaseMap = pTaskDatabaseMap;
     	activity = pActivity;
 	}
@@ -132,8 +132,8 @@ public class TaskPanel {
 	}
 	
 	private void adjustDimensionsToDefault(final ImageButton taskControlButton) {
-		taskControlButton.getLayoutParams().height = leftButton.getHeight();
-		taskControlButton.getLayoutParams().width = leftButton.getWidth();
+		taskControlButton.getLayoutParams().height = addTaskButton.getHeight();
+		taskControlButton.getLayoutParams().width = addTaskButton.getWidth();
 	}
 
 	public void resetTimeLeftIfTaskNotRunning() {
@@ -293,6 +293,6 @@ public class TaskPanel {
 	    	}
         }
     };
-	private Button leftButton;
+	private Button addTaskButton;
 
 }

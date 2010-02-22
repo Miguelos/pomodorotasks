@@ -100,14 +100,14 @@
         style="@android:style/ButtonBar">
 
 
-        <EditText android:id="@+id/left_text_edit"
+        <EditText android:id="@+id/add_task_input_box"
             android:layout_height="wrap_content"
             android:layout_width="fill_parent"
             android:layout_weight="1" 
             android:maxLines="3"
             android:maxLength="70"
             android:text="" android:hint="New Task"/>
-        <Button android:id="@+id/left_text_button"
+        <Button android:id="@+id/add_task_input_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/add_button"/>

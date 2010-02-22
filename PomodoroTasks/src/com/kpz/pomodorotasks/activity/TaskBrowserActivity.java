@@ -28,7 +28,7 @@ public class TaskBrowserActivity extends ListActivity {
     
 	private static final String LOG_TAG = "PomodoroTasks";
 
-	private static final int NOTIFICATION_ID = R.layout.tasks_list;
+	private static final int NOTIFICATION_ID = R.layout.task_list;
 	
 	private static final int ACTIVITY_EDIT = 1;
 	private static final int ACTIVITY_SET_OPTIONS = 2;
@@ -71,7 +71,7 @@ public class TaskBrowserActivity extends ListActivity {
         
         initDatabaseHelper();        
         initTasksList();
-        initAddTaskInput();
+        initAddTaskPanel();
         initAndHideRunTaskPanel();   
 	}
 
@@ -108,7 +108,7 @@ public class TaskBrowserActivity extends ListActivity {
         // and an array of the fields we want to bind those fields to (in this case just task_description)
         int[] to = new int[]{R.id.task_description, R.id.taskRow};
         
-        SimpleCursorAdapter taskListCursorAdapter = new SimpleCursorAdapter(getApplication(), R.layout.tasks_row, tasksCursor, from, to);
+        SimpleCursorAdapter taskListCursorAdapter = new SimpleCursorAdapter(getApplication(), R.layout.task_row, tasksCursor, from, to);
         taskListCursorAdapter.setViewBinder(new ViewBinder() {
 			
 			public boolean setViewValue(View view, Cursor cursor, int columnIndex) {
@@ -189,10 +189,11 @@ public class TaskBrowserActivity extends ListActivity {
         taskDatabaseMap.open();
 	}
 
-	private void initAddTaskInput() {
-		final EditText leftTextEdit = (EditText) findViewById(R.id.left_text_edit);
-        Button leftButton = (Button) findViewById(R.id.left_text_button);
-        leftButton.setOnClickListener(new OnClickListener() {
+	private void initAddTaskPanel() {
+		final EditText leftTextEdit = (EditText) findViewById(R.id.add_task_input_box);
+		final Button addButton = (Button) findViewById(R.id.add_task_input_button);
+		
+        addButton.setOnClickListener(new OnClickListener() {
             
         	public void onClick(View v) {
  
