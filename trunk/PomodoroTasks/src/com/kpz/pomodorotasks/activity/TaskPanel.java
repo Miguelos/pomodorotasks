@@ -75,6 +75,11 @@ public class TaskPanel {
 		runTaskPanel.setVisibility(View.GONE);
 	}
 	
+	public void updateTaskDescription(String taskDesc) {
+		
+		taskDescription.setText(taskDesc);
+	}
+	
     public void refreshTaskPanel() {
     	
     	String text = getCurrentTaskText();

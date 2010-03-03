@@ -180,9 +180,7 @@ public class TaskDatabaseMap {
 	 */
 	public Cursor fetch(long rowId) throws SQLException {
 
-		Cursor mCursor =
-
-		mDb.query(true, TASKS_TABLE, SELECTION_KEYS, KEY_ROWID + "=" + rowId, null, null, null, null, null);
+		Cursor mCursor = mDb.query(true, TASKS_TABLE, SELECTION_KEYS, KEY_ROWID + "=" + rowId, null, null, null, null, null);
 		if (mCursor != null) {
 			mCursor.moveToFirst();
 		}
