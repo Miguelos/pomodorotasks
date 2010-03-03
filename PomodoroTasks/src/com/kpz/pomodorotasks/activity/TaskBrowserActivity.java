@@ -42,6 +42,7 @@ public class TaskBrowserActivity extends ListActivity {
 	private ListView taskList;
     private TaskDatabaseMap taskDatabaseMap;
 	private Cursor taskListCursor;
+	private Long currentTaskRowId = null;
 
 	private ServiceConnection connection;
 	
@@ -150,10 +151,10 @@ public class TaskBrowserActivity extends ListActivity {
     	Cursor cursor = (Cursor)getListAdapter().getItem(which);
 		int rowId = Integer.parseInt(cursor.getString(cursor.getColumnIndex(TaskDatabaseMap.KEY_ROWID)));
 		taskDatabaseMap.updateStatus(rowId, true);
-		refreshTasksList();
+		refreshTaskList();
 	}
 	
-    private boolean refreshTasksList() {
+    private boolean refreshTaskList() {
 
     	return taskListCursor.requery();
 	}
@@ -166,7 +167,7 @@ public class TaskBrowserActivity extends ListActivity {
     	Cursor cursor = (Cursor)getListAdapter().getItem(which);
 		int rowId = Integer.parseInt(cursor.getString(cursor.getColumnIndex(TaskDatabaseMap.KEY_ROWID)));
 		taskDatabaseMap.updateStatus(rowId, false);
-		refreshTasksList();
+		refreshTaskList();
 	}
 	
     private TouchInterceptor.CheckOffListener mCheckOffListener = new TouchInterceptor.CheckOffListener() {
@@ -200,7 +201,7 @@ public class TaskBrowserActivity extends ListActivity {
         		String noteDescription = leftTextEdit.getText().toString().trim();
         		if (!noteDescription.equals("")){
         			createNewTask(noteDescription);
-                    refreshTasksList();
+                    refreshTaskList();
                     resetAddTaskEntryDisplay(leftTextEdit);        			
         		}
             }
@@ -245,7 +246,7 @@ public class TaskBrowserActivity extends ListActivity {
 
         case MAIN_MENU_DELETED_COMPLETED_ID:
         	taskDatabaseMap.deleteCompleted();
-	        refreshTasksList();
+	        refreshTaskList();
 			if (!isTaskExists(taskPanel.getCurrentTaskText())){
 				taskPanel.refreshTaskPanel();
 			}
@@ -253,7 +254,7 @@ public class TaskBrowserActivity extends ListActivity {
         	
         case MAIN_MENU_DELETE_ALL_ID:
         	taskDatabaseMap.deleteAll();
-	        refreshTasksList();
+	        refreshTaskList();
 			if (!isTaskExists(taskPanel.getCurrentTaskText())){
 				taskPanel.refreshTaskPanel();				
 			}
@@ -283,7 +284,8 @@ public class TaskBrowserActivity extends ListActivity {
     	final String[] items = {"Start", "Edit", "Delete"};
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setItems(items, new DialogInterface.OnClickListener() {
-		    public void onClick(DialogInterface dialog, int item) {
+
+			public void onClick(DialogInterface dialog, int item) {
 		        
 		    	//Toast.makeText(getApplicationContext(), items[item], Toast.LENGTH_SHORT).show();
 		        
@@ -291,6 +293,7 @@ public class TaskBrowserActivity extends ListActivity {
 				case 0:
 			        TextView textView = (TextView)v.findViewById(R.id.task_description);
 			        startTask(textView.getText().toString());
+			        currentTaskRowId = rowId;
 					break;
 					
 				case 1:
@@ -301,7 +304,7 @@ public class TaskBrowserActivity extends ListActivity {
 			        
 				case 2:
 			        taskDatabaseMap.delete(rowId);
-			        refreshTasksList();
+			        refreshTaskList();
 			        break;
 			        
 				default:
@@ -325,10 +328,19 @@ public class TaskBrowserActivity extends ListActivity {
 				taskPanel.resetTimeLeftIfTaskNotRunning();
 				break;
 			case ACTIVITY_EDIT:
-				refreshTasksList();
+				refreshTaskList();
+				updateTaskPanel();
 				break;
 		}
     }
+
+	private void updateTaskPanel() {
+		if (currentTaskRowId != null){
+			Cursor task = taskDatabaseMap.fetch(currentTaskRowId);
+			String taskDescription = task.getString(task.getColumnIndexOrThrow(TaskDatabaseMap.KEY_DESCRIPTION));
+			taskPanel.updateTaskDescription(taskDescription);
+		}
+	}
     
 	public boolean isTaskExists(String text) {
 
@@ -355,7 +367,7 @@ public class TaskBrowserActivity extends ListActivity {
 
     		move(from, to);
         	resetBottomMargin();
-        	refreshTasksList();
+        	refreshTaskList();
         }
 
 		private void resetBottomMargin() {
