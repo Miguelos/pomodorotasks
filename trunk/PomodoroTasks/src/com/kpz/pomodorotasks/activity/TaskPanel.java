@@ -125,11 +125,15 @@ public class TaskPanel {
     	}
 		
 		resetProgressControl();
+		
+		if(mBoundService != null){
+			mBoundService.clearTaskNotification();			
+		}
 	}
 	
 	private void resetProgressControl() {
-		resetTimeLeftIfTaskNotRunning();
 		progressBar.setProgress(0);
+		resetTimeLeftIfTaskNotRunning();
         taskControlButton.setImageResource(R.drawable.play);
         taskControlButton.setTag(R.string.TASK_CONTROL_BUTTON_STATE_TYPE, R.string.TO_PLAY_STATE);
         adjustDimensionsToDefault(taskControlButton);
@@ -215,7 +219,7 @@ public class TaskPanel {
 		private boolean isTaskTime;
 
 		public TaskTimer(long millisInFuture, long countDownInterval, Handler handler, boolean isTaskTime) {
-	    	super(millisInFuture + ONE_SEC, countDownInterval);
+	    	super(millisInFuture, countDownInterval);
 	    	this.mHandler = handler;
 	    	this.isTaskTime = isTaskTime;
 		}
@@ -225,18 +229,13 @@ public class TaskPanel {
 	    	
 	    	incrementProgress(millisUntilFinished);
 	    }
-
+		
 		private void incrementProgress(long millisUntilFinished) {
 			
 			final DateFormat dateFormat = new SimpleDateFormat("mm:ss");
-            String timeStr = dateFormat.format(new Date(millisUntilFinished - ONE_SEC));
+			String timeStr = dateFormat.format(new Date(millisUntilFinished));
             timeLeft.setText(timeStr);
            	progressBar.setProgress(new Long(millisUntilFinished / ONE_SEC).intValue());
-           	
-           	if (timeStr.equals("00:00")){
-           		beep();
-    	    	endTimer();
-           	}
 		}
 
 		private void beep() {
@@ -247,12 +246,9 @@ public class TaskPanel {
 			mHandler.sendMessage(msg);
 		}
 		
-		private void endTimer() {
-			cancel();
-		}
 		@Override
 		public void onFinish() {
-			// do nothing
+			beep();
 		}
     }
 
@@ -261,6 +257,7 @@ public class TaskPanel {
 
         	mBoundService.notifyTimeEnded();
 	        
+        	timeLeft.setText("00:00");
 	    	resetProgressControl();
 	    	
 	    	boolean isTaskTime = msg.getData().getBoolean("TASK_TIME");

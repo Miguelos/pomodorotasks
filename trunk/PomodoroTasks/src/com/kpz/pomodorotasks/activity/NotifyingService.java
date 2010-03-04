@@ -64,8 +64,9 @@ public class NotifyingService extends Service {
         notification.flags = Notification.FLAG_ONGOING_EVENT;
         
         if(beep){
-        	notification.sound = Uri.parse("android.resource://com.kpz.pomodorotasks/" + R.raw.freesoundprojectdotorg_32568__erh__indian_brass_pestle);
-            notification.vibrate = new long[] {0,100,200,300};
+        	String packageName = getApplication().getApplicationInfo().packageName;
+			notification.sound = Uri.parse("android.resource://"+ packageName + "/" + R.raw.freesoundprojectdotorg_32568__erh__indian_brass_pestle);
+        	notification.vibrate = new long[] {0,100,200,300};
             notification.defaults |= Notification.DEFAULT_LIGHTS;
         }
         
@@ -90,11 +91,11 @@ public class NotifyingService extends Service {
 	public void notifyTimeStarted(String taskDescription) {
 
 		mTaskDescription = taskDescription;
-		showNotification("Clock is ticking. Task - " +  taskDescription);
+		showNotification("Clock is ticking. Task - " +  taskDescription, false);
 	}
 
 	public void clearTaskNotification() {
-		showNotification(null);
+		showNotification("");
 	}
 }
 
