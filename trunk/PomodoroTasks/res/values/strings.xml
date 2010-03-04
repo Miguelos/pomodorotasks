@@ -3,6 +3,7 @@
     <string name="app_name">Pomodoro Tasks</string>
     <string name="no_tasks">No Tasks Yet</string>
 
+    <string name="menu_add_task">New Task</string>
     <string name="menu_delete_completed">Clear Completed</string>
     <string name="menu_delete_all">Clear All</string>
     <string name="menu_options">Options</string>

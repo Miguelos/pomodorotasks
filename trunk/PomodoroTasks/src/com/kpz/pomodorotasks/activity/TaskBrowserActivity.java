@@ -15,6 +15,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
@@ -37,6 +38,7 @@ public class TaskBrowserActivity extends ListActivity {
 	private static final int MAIN_MENU_DELETED_COMPLETED_ID = MAIN_MENU_DELETE_ALL_ID + 1;
 	private static final int MAIN_MENU_OPTIONS_ID = MAIN_MENU_DELETE_ALL_ID + 2;
 	private static final int MAIN_MENU_QUIT_ID = MAIN_MENU_DELETE_ALL_ID + 3;
+	private static final int MAIN_MENU_ADD_TASK_ID = MAIN_MENU_DELETE_ALL_ID + 4;
 	
 	private TaskPanel taskPanel;
 	private ListView taskList;
@@ -45,13 +47,17 @@ public class TaskBrowserActivity extends ListActivity {
 	private Long currentTaskRowId = null;
 
 	private ServiceConnection connection;
-	
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
         initView();
     }
+
+	private boolean isCurrentOrientationLandscape() {
+		return getBaseContext().getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
+	}
     
     @Override
     protected void onDestroy() {
@@ -73,6 +79,7 @@ public class TaskBrowserActivity extends ListActivity {
         initDatabaseHelper();        
         initTasksList();
         initAddTaskPanel();
+        refreshTaskPanelForOrientation();
         initAndHideRunTaskPanel();   
 	}
 
@@ -85,15 +92,34 @@ public class TaskBrowserActivity extends ListActivity {
 	@Override
 	public void onConfigurationChanged(Configuration newConfig) {
 		super.onConfigurationChanged(newConfig);
-		// doing nothing to the view when screen orientation changes
+		
+		// doing almost nothing to the view when screen orientation changes except...
+		refreshTaskPanelForOrientation();
 	}
 	
+	private void refreshTaskPanelForOrientation() {
+
+		if (isCurrentOrientationLandscape()){
+
+			addTaskPanel.setVisibility(View.GONE);
+			hideAddPanelButton.setVisibility(View.VISIBLE);
+			
+			
+		} else {
+			
+			hideAddPanelButton.setVisibility(View.GONE);
+			addTaskPanel.setVisibility(View.VISIBLE);
+		}
+	}
+
 	private void startTask(String taskDescription) {
 
 		taskPanel.startTask(taskDescription);
 	}
 	
 	private void initTasksList() {
+		
+		rootLayout = (LinearLayout)findViewById(R.id.screen);
 		initTasksListViewContainer();
         populateTasksList();
 	}
@@ -191,40 +217,57 @@ public class TaskBrowserActivity extends ListActivity {
 	}
 
 	private void initAddTaskPanel() {
-		final EditText leftTextEdit = (EditText) findViewById(R.id.add_task_input_box);
-		final Button addButton = (Button) findViewById(R.id.add_task_input_button);
 		
+		addTaskPanel = (LinearLayout)findViewById(R.id.add_task_panel);
+		addTaskInputBox = (EditText) findViewById(R.id.add_task_input_box);
+
+		final Button addButton = (Button) findViewById(R.id.add_task_input_button);
         addButton.setOnClickListener(new OnClickListener() {
             
         	public void onClick(View v) {
  
-        		String noteDescription = leftTextEdit.getText().toString().trim();
+        		String noteDescription = addTaskInputBox.getText().toString().trim();
         		if (!noteDescription.equals("")){
         			createNewTask(noteDescription);
                     refreshTaskList();
-                    resetAddTaskEntryDisplay(leftTextEdit);        			
+                    resetAddTaskInputBox();        			
         		}
             }
-
-			private void resetAddTaskEntryDisplay(final EditText leftTextEdit) {
-				leftTextEdit.setText("");
-				leftTextEdit.requestFocus();
-// to hide keyboard				
-//                ((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(leftTextEdit.getWindowToken(), 0); 
-// to display on-screen keyboard                 
-//                ((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE))  
-//                .showSoftInput(editText, 0);  
-			}
 
 			private void createNewTask(final String noteDescription) {
             	taskDatabaseMap.createTask(noteDescription);
 			}
         });
+        
+        hideAddPanelButton = (ImageButton) findViewById(R.id.hide_add_panel_button);
+        hideAddPanelButton.setVisibility(View.GONE);
+        hideAddPanelButton.setOnClickListener(new OnClickListener() {
+
+			public void onClick(View arg0) {
+				
+				addTaskPanel.setVisibility(View.GONE);
+			}
+        });	
 	}
     
-    @Override
+	private void resetAddTaskInputBox() {
+		
+		addTaskInputBox.setText("");
+		addTaskInputBox.requestFocus();
+		
+//to hide keyboard				
+//        ((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(leftTextEdit.getWindowToken(), 0); 
+//to display on-screen keyboard                 
+//        ((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE))  
+//        .showSoftInput(editText, 0);  
+	}
+	
+	@Override
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
+        
+		addTaskMenuItem = menu.add(0, MAIN_MENU_ADD_TASK_ID, 0, R.string.menu_add_task);
+        addTaskMenuItem.setIcon(drawable.ic_menu_add);
         
         MenuItem menuItem = menu.add(0, MAIN_MENU_DELETED_COMPLETED_ID, 0, R.string.menu_delete_completed);
         menuItem.setIcon(drawable.ic_menu_agenda);
@@ -239,11 +282,34 @@ public class TaskBrowserActivity extends ListActivity {
         menuItem.setIcon(drawable.ic_menu_close_clear_cancel);
         return true;
     }
+    
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+
+    	if (isCurrentOrientationLandscape()){
+
+    		resetAddTaskInputBox();
+    		addTaskMenuItem.setVisible(true);
+    		addTaskMenuItem.setEnabled(true);
+    		
+    	} else {
+
+    		addTaskMenuItem.setVisible(false);
+    		addTaskMenuItem.setEnabled(false);
+    	}
+    	
+    	return super.onPrepareOptionsMenu(menu);
+    }
 
     @Override
     public boolean onMenuItemSelected(int featureId, MenuItem item) {
         switch(item.getItemId()) {
 
+        case MAIN_MENU_ADD_TASK_ID:
+
+        	addTaskPanel.setVisibility(View.VISIBLE);
+        	return true;
+        	
         case MAIN_MENU_DELETED_COMPLETED_ID:
         	taskDatabaseMap.deleteCompleted();
 	        refreshTaskList();
@@ -390,4 +456,14 @@ public class TaskBrowserActivity extends ListActivity {
         	taskDatabaseMap.move(fromSeq, toRowId, toSeq);
 		}
     };
+
+	private LinearLayout rootLayout;
+
+	private MenuItem addTaskMenuItem;
+
+	private LinearLayout addTaskPanel;
+
+	private ImageButton hideAddPanelButton;
+
+	private EditText addTaskInputBox;
 }
