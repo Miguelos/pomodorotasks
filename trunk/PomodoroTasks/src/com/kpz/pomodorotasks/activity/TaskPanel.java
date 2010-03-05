@@ -133,22 +133,22 @@ public class TaskPanel {
 	
 	private void resetProgressControl() {
 		progressBar.setProgress(0);
+		progressBar.getLayoutParams().height = 2;
 		resetTimeLeftIfTaskNotRunning();
         taskControlButton.setImageResource(R.drawable.play);
         taskControlButton.setTag(R.string.TASK_CONTROL_BUTTON_STATE_TYPE, R.string.TO_PLAY_STATE);
-        adjustDimensionsToDefault(taskControlButton);
         hideButton.setVisibility(View.VISIBLE);
 	}
 	
-	private void adjustDimensionsToDefault(final ImageButton taskControlButton) {
-		taskControlButton.getLayoutParams().height = addTaskButton.getHeight();
-		taskControlButton.getLayoutParams().width = addTaskButton.getWidth();
-	}
-
 	public void resetTimeLeftIfTaskNotRunning() {
 		
 		if (isPanelVisible() && !isTaskRunning()){
-			timeLeft.setText(taskDatabaseMap.fetchTaskDurationSetting() + ":00");	
+			int minutes = taskDatabaseMap.fetchTaskDurationSetting();
+			String minutesString = "" + minutes;
+			if (minutes < 10){
+				minutesString = "0" + minutesString;
+			}
+			timeLeft.setText(minutesString + ":00");	
 		}
 	}
 
@@ -177,6 +177,7 @@ public class TaskPanel {
 		taskDescription.setText(taskDesc);
 		
 		progressBar.setMax(totalTime);
+		progressBar.getLayoutParams().height = 3;
 		counter = new TaskTimer(totalTime * ONE_SEC, ONE_SEC, beepHandler, isTimeTask);
 		//counter = new ProgressThread(handler);
 		counter.start();
