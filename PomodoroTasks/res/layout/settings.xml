@@ -66,8 +66,8 @@
 	   	   <SeekBar android:id="@+id/seek"
                         android:layout_width="fill_parent"
                         android:layout_height="wrap_content"
-                        android:max="45"
-                        android:secondaryProgress="25" />
+                        android:max="44"
+                        android:secondaryProgress="24" />
                 	  
         </LinearLayout>
 	</LinearLayout>	  
