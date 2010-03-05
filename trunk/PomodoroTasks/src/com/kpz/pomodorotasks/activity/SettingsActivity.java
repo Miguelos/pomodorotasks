@@ -36,8 +36,9 @@ public class SettingsActivity extends Activity {
         mSeekBar.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
 			
 			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromTouch) {
-            	mDuration  = progress;
-            	mDurationText.setText(progress + " min");
+				int duration = progress + 1;
+            	mDuration  = duration;
+            	mDurationText.setText(duration + " min");
                 
             }
 

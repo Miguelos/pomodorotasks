@@ -5,16 +5,15 @@
     android:layout_width="fill_parent" 
     android:layout_height="fill_parent"
     android:orientation="vertical"
-    android:background="@drawable/task_row_drawable">
+    android:background="@drawable/list_background">
 
     <LinearLayout  
 	    android:id="@+id/runTaskPanel"
 	    android:layout_width="fill_parent" 
 	    android:layout_height="wrap_content"
 	    android:background="@drawable/run_task_panel"
-	    android:orientation="vertical">
-
-
+	    android:orientation="vertical"
+	    android:paddingBottom="15px">
 
         <RelativeLayout android:layout_width="fill_parent" 
             android:layout_height="wrap_content">
@@ -36,7 +35,7 @@
 	           android:paddingTop="10sp"
                android:gravity="center_horizontal"
 	           android:layout_toLeftOf="@id/hide_panel_button"
-	           android:text="No Task Selected"/>
+	           android:text=""/>
 
         </RelativeLayout>
 
@@ -62,9 +61,9 @@
 	            android:layout_centerVertical="true"
 	        />
 	        
-	        <ProgressBar android:id="@+id/progress_horizontal" 
+	        <ProgressBar android:id="@+id/task_progress_bar" 
 	           style="?android:attr/progressBarStyleHorizontal"
-	           android:progressDrawable="@drawable/custom_progress_horizontal" 
+	           android:progressDrawable="@drawable/task_progress_bar" 
 	           android:layout_width="fill_parent"
 	           android:layout_height="wrap_content"
 	           android:paddingRight="5sp"

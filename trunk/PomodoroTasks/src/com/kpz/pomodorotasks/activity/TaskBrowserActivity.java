@@ -279,7 +279,7 @@ public class TaskBrowserActivity extends ListActivity {
         menuItem.setIcon(drawable.ic_menu_preferences);
         
         menuItem = menu.add(0, MAIN_MENU_QUIT_ID, 0, R.string.menu_quit);
-        menuItem.setIcon(drawable.ic_menu_close_clear_cancel);
+        menuItem.setIcon(drawable.ic_lock_power_off);
         return true;
     }
     

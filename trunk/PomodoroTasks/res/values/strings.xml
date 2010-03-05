@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Pomodoro Tasks</string>
-    <string name="no_tasks">No Tasks Yet</string>
 
     <string name="menu_add_task">New Task</string>
     <string name="menu_delete_completed">Clear Completed</string>
@@ -11,8 +10,6 @@
     
     <string name="menu_edit">Edit</string>
     <string name="menu_delete">Delete</string>
-    <string name="menu_complete">Complete</string>
-    <string name="menu_reopen">Re-Open</string>
     
     <string name="done">Done</string>
     <string name="revert">Revert</string>
@@ -20,7 +17,7 @@
     <string name="add_button">Add</string>
     
     <!-- Do not translate. Background color for currently dragged item in playlist edit mode. -->
-    <color name="dragndrop_background">#e0103010</color>
+    <color name="dragndrop_background">#CCCCCC</color>
     <color name="tomatoRed">#DF3232</color>
     <color name="tomatoSauce">#CD0808</color>
 
@@ -31,8 +28,4 @@
     <string name="TO_PLAY_STATE">Task Control Button State</string>    
     <string name="TO_STOP_STATE">Task Control Button State</string>   
     
-    <string name="seekbar_tracking_on">Tracking on</string>
-    <string name="seekbar_tracking_off">Tracking off</string>
-    <string name="seekbar_from_touch">from touch</string>
-     
 </resources>

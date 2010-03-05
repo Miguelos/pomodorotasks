@@ -56,7 +56,7 @@ public class TaskPanel {
 		
     	taskDescription = (TextView)pActivity.findViewById(R.id.task_description);
     	timeLeft = (TextView)pActivity.findViewById(R.id.time_left);
-    	progressBar = (ProgressBar)pActivity.findViewById(R.id.progress_horizontal);
+    	progressBar = (ProgressBar)pActivity.findViewById(R.id.task_progress_bar);
     	addTaskButton = (Button) pActivity.findViewById(R.id.add_task_input_button);
     	taskDatabaseMap = pTaskDatabaseMap;
     	activity = pActivity;
