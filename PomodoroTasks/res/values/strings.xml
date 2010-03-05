@@ -22,6 +22,7 @@
     <!-- Do not translate. Background color for currently dragged item in playlist edit mode. -->
     <color name="dragndrop_background">#e0103010</color>
     <color name="tomatoRed">#DF3232</color>
+    <color name="tomatoSauce">#CD0808</color>
 
     <string name="zeroTime">00:00</string>
 

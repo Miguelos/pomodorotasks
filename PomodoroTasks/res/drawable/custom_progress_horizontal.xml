@@ -3,12 +3,12 @@
     
     <item android:id="@android:id/background">
         <shape>
-            <corners android:radius="3dip" />
+            <corners android:radius="2dip" />
             <gradient
-                    android:startColor="#B41E1E"
-                    android:centerColor="#DF3232"
+                    android:startColor="#999999"
+                    android:centerColor="#515151"
                     android:centerY="0.75"
-                    android:endColor="#DF3232"
+                    android:endColor="#999999"
                     android:angle="270"
             />
         </shape>

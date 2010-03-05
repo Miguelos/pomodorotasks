@@ -4,16 +4,16 @@
     android:id="@+id/screen"
     android:layout_width="fill_parent" 
     android:layout_height="fill_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="@drawable/task_row_drawable">
 
     <LinearLayout  
 	    android:id="@+id/runTaskPanel"
 	    android:layout_width="fill_parent" 
 	    android:layout_height="wrap_content"
-	    android:background="@color/tomatoRed"
-	    android:orientation="vertical"
-	    android:drawable="@drawable/run_task_panel">
-    <!--  @android:drawable/editbox_background -->
+	    android:background="@drawable/run_task_panel"
+	    android:orientation="vertical">
+
 
 
         <RelativeLayout android:layout_width="fill_parent" 
@@ -70,8 +70,8 @@
 	           android:paddingRight="5sp"
 	           android:layout_toLeftOf="@id/time_left"
 	           android:layout_toRightOf="@id/control_icon"
-	           android:maxHeight="5dip"
-	           android:minHeight="5dip"
+	           android:maxHeight="2dip"
+	           android:minHeight="2dip"
 	           android:layout_centerVertical="true"
 	        /> 
 	        
@@ -85,7 +85,10 @@
         android:fastScrollEnabled="true" 
         android:transcriptMode="normal"
         android:layout_height="0dip"
-        android:layout_weight="1"        
+        android:layout_weight="1"
+        android:divider="@drawable/list_divider"   
+        android:dividerHeight="1px"
+        android:cacheColorHint="#00000000"
         /> 
         
   	<TextView android:id="@+id/android:empty"
