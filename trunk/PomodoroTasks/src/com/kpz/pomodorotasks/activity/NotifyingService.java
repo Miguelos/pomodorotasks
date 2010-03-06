@@ -30,12 +30,19 @@ public class NotifyingService extends Service {
 
     }
     
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        // We want this service to continue running until it is explicitly
-        // stopped, so return sticky.
-        return START_STICKY;
-    }
+// Version 1.5 and below   
+//    @Override
+//    public void onStart(Intent intent, int startId) {
+//    	super.onStart(intent, startId);
+//    }
+
+// Version 1.6    
+//    @Override
+//    public int onStartCommand(Intent intent, int flags, int startId) {
+//        // We want this service to continue running until it is explicitly
+//        // stopped, so return sticky.
+//        return START_STICKY;
+//    }
 
     @Override
     public void onDestroy() {
@@ -64,7 +71,7 @@ public class NotifyingService extends Service {
         notification.flags = Notification.FLAG_ONGOING_EVENT;
         
         if(beep){
-        	String packageName = getApplication().getApplicationInfo().packageName;
+        	String packageName = getApplication().getPackageName();
 			notification.sound = Uri.parse("android.resource://"+ packageName + "/" + R.raw.freesoundprojectdotorg_32568__erh__indian_brass_pestle);
         	notification.vibrate = new long[] {0,100,200,300};
             notification.defaults |= Notification.DEFAULT_LIGHTS;
