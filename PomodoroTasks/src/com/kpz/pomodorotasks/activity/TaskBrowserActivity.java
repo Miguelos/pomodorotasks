@@ -403,8 +403,10 @@ public class TaskBrowserActivity extends ListActivity {
 	private void updateTaskPanel() {
 		if (currentTaskRowId != null){
 			Cursor task = taskDatabaseMap.fetch(currentTaskRowId);
-			String taskDescription = task.getString(task.getColumnIndexOrThrow(TaskDatabaseMap.KEY_DESCRIPTION));
-			taskPanel.updateTaskDescription(taskDescription);
+			if (task.getCount() != 0){
+				String taskDescription = task.getString(task.getColumnIndexOrThrow(TaskDatabaseMap.KEY_DESCRIPTION));
+				taskPanel.updateTaskDescription(taskDescription);				
+			}
 		}
 	}
     

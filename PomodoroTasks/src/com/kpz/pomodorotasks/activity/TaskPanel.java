@@ -13,7 +13,6 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -41,6 +40,10 @@ public class TaskPanel {
 	private TaskTimer counter;
 	private ServiceConnection connection;
 	private Activity activity;
+	
+	private enum BUTTON_STATE {
+		PLAY, STOP
+	}
 
 	public TaskPanel(Activity pActivity, TaskDatabaseMap pTaskDatabaseMap) {
 		runTaskPanel = (LinearLayout)pActivity.findViewById(R.id.runTaskPanel);
@@ -57,7 +60,6 @@ public class TaskPanel {
     	taskDescription = (TextView)pActivity.findViewById(R.id.task_description);
     	timeLeft = (TextView)pActivity.findViewById(R.id.time_left);
     	progressBar = (ProgressBar)pActivity.findViewById(R.id.task_progress_bar);
-    	addTaskButton = (Button) pActivity.findViewById(R.id.add_task_input_button);
     	taskDatabaseMap = pTaskDatabaseMap;
     	activity = pActivity;
 	}
@@ -104,7 +106,7 @@ public class TaskPanel {
 
     	    public void onClick(View view) {
 
-    	    	if (counter != null && taskControlButton.getTag(R.string.TASK_CONTROL_BUTTON_STATE_TYPE).equals(R.string.TO_STOP_STATE)){
+    	    	if (counter != null && taskControlButton.getTag().equals(BUTTON_STATE.STOP)){
     	    		resetTaskRun();
     	    	} else {
     	    		beginTimeTask(ptaskDescription);
@@ -112,7 +114,7 @@ public class TaskPanel {
     	    }
     	});
 	}
-	
+
 	private void showPanel(String taskDesc) {
 		
 		runTaskPanel.setVisibility(View.VISIBLE);
@@ -136,7 +138,7 @@ public class TaskPanel {
 		progressBar.getLayoutParams().height = 2;
 		resetTimeLeftIfTaskNotRunning();
         taskControlButton.setImageResource(R.drawable.play);
-        taskControlButton.setTag(R.string.TASK_CONTROL_BUTTON_STATE_TYPE, R.string.TO_PLAY_STATE);
+        taskControlButton.setTag(BUTTON_STATE.PLAY);
         hideButton.setVisibility(View.VISIBLE);
 	}
 	
@@ -184,7 +186,7 @@ public class TaskPanel {
 		
 		hideButton.setVisibility(View.INVISIBLE);
 		taskControlButton.setImageResource(R.drawable.stop);
-		taskControlButton.setTag(R.string.TASK_CONTROL_BUTTON_STATE_TYPE, R.string.TO_STOP_STATE);
+		taskControlButton.setTag(BUTTON_STATE.STOP);
 
 	    connection = new ServiceConnection() {
 
@@ -296,6 +298,4 @@ public class TaskPanel {
 	    	}
         }
     };
-	private Button addTaskButton;
-
 }
