@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.IBinder;
@@ -40,6 +39,7 @@ public class TaskPanel {
 	private TaskTimer counter;
 	private ServiceConnection connection;
 	private Activity activity;
+	private boolean isUserTask = false;
 	
 	private enum BUTTON_STATE {
 		PLAY, STOP
@@ -66,10 +66,10 @@ public class TaskPanel {
 
 	public void startTask(String taskDescription) {
 
-		initPanel(taskDescription);
+		initPanel();
 		showPanel(taskDescription);
 		resetTaskRun();
-		beginTimeTask(taskDescription);
+		beginTimeTask();
 	}
 	
 	public void hidePanel(){
@@ -79,7 +79,9 @@ public class TaskPanel {
 	
 	public void updateTaskDescription(String taskDesc) {
 		
-		taskDescription.setText(taskDesc);
+		if (isUserTask){
+			taskDescription.setText(taskDesc);			
+		}
 	}
 	
     public void refreshTaskPanel() {
@@ -100,7 +102,7 @@ public class TaskPanel {
 		return taskDescription.getText().toString();
 	}
 
-	private void initPanel(final String ptaskDescription) {
+	private void initPanel() {
 		
     	taskControlButton.setOnClickListener(new View.OnClickListener() {
 
@@ -109,7 +111,7 @@ public class TaskPanel {
     	    	if (counter != null && taskControlButton.getTag().equals(BUTTON_STATE.STOP)){
     	    		resetTaskRun();
     	    	} else {
-    	    		beginTimeTask(ptaskDescription);
+    	    		beginTimeTask();
     	    	}
     	    }
     	});
@@ -162,10 +164,10 @@ public class TaskPanel {
 		return progressBar.getProgress() != 0;
 	}
 	
-	private void beginTimeTask(String taskDescription){
+	private void beginTimeTask(){
 		
 		int totalTime = taskDatabaseMap.fetchTaskDurationSetting() * 60;
-		beginTask(taskDescription, totalTime, true);
+		beginTask(taskDescription.getText().toString(), totalTime, true);
 	}
 	
 	private void beginBreakTask(){
@@ -174,13 +176,14 @@ public class TaskPanel {
 		beginTask("Take a Break", totalTime, false);
 	}
 	
-	private void beginTask(final String taskDesc, int totalTime, boolean isTimeTask) {
+	private void beginTask(final String taskDesc, int totalTime, boolean p_isUserTask) {
 	
+		isUserTask = p_isUserTask;
 		taskDescription.setText(taskDesc);
 		
 		progressBar.setMax(totalTime);
 		progressBar.getLayoutParams().height = 3;
-		counter = new TaskTimer(totalTime * ONE_SEC, ONE_SEC, beepHandler, isTimeTask);
+		counter = new TaskTimer(totalTime * ONE_SEC, ONE_SEC);
 		//counter = new ProgressThread(handler);
 		counter.start();
 		
@@ -218,13 +221,8 @@ public class TaskPanel {
 
     public class TaskTimer extends CountDownTimer{
 	    
-		private Handler mHandler;
-		private boolean isTaskTime;
-
-		public TaskTimer(long millisInFuture, long countDownInterval, Handler handler, boolean isTaskTime) {
+		public TaskTimer(long millisInFuture, long countDownInterval) {
 	    	super(millisInFuture, countDownInterval);
-	    	this.mHandler = handler;
-	    	this.isTaskTime = isTaskTime;
 		}
 
 		@Override
@@ -242,11 +240,8 @@ public class TaskPanel {
 		}
 
 		private void beep() {
-			Message msg = mHandler.obtainMessage();
-			Bundle bundle = new Bundle();
-			bundle.putBoolean("TASK_TIME", isTaskTime);
-			msg.setData(bundle);
-			mHandler.sendMessage(msg);
+			Message msg = beepHandler.obtainMessage();
+			beepHandler.sendMessage(msg);
 		}
 		
 		@Override
@@ -263,8 +258,7 @@ public class TaskPanel {
         	timeLeft.setText("00:00");
 	    	resetProgressControl();
 	    	
-	    	boolean isTaskTime = msg.getData().getBoolean("TASK_TIME");
-	    	if(isTaskTime){
+	    	if(isUserTask){
 	    		
 	        	final String[] items = {"Take 5 min break", "Cancel"};
 	    		AlertDialog.Builder builder = new AlertDialog.Builder(activity);
@@ -278,6 +272,10 @@ public class TaskPanel {
 	    					break;
 
 	    				case 1:
+	    					if(mBoundService != null){
+	    		    			mBoundService.clearTaskNotification();
+	    		    		}
+	    					hidePanel();
 	    			        break;
 	    			        
 	    				default:
@@ -291,10 +289,19 @@ public class TaskPanel {
 	    		
 	    	} else {
 	    		
-	    		taskDescription.setText("");
-	    		if(mBoundService != null){
-	    			mBoundService.clearTaskNotification();
-	    		}
+	    		AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+	    		builder.setMessage("   Break complete   ")
+	    		       .setCancelable(false)
+	    		       .setNeutralButton("OK", new DialogInterface.OnClickListener() {
+	    		           public void onClick(DialogInterface dialog, int id) {
+	    		        	   if(mBoundService != null){
+		    		    			mBoundService.clearTaskNotification();
+		    		    		}    
+	    		        	   hidePanel();
+	    		           }
+	    		       });
+	    		AlertDialog alert = builder.create();
+	    		alert.show();
 	    	}
         }
     };
