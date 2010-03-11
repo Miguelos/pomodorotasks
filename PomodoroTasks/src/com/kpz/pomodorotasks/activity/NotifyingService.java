@@ -10,7 +10,8 @@ import android.os.Binder;
 import android.os.IBinder;
 
 public class NotifyingService extends Service {
-    private static final int NOTIFICATION_ID = R.layout.task_list;
+    private static final String TASK_HEADER = "Task - ";
+	private static final int NOTIFICATION_ID = R.layout.task_list;
 	private NotificationManager notificationManager;
 
     /**
@@ -60,11 +61,7 @@ public class NotifyingService extends Service {
     private final IBinder mBinder = new LocalBinder();
 	private String mTaskDescription;
 
-    public void showNotification(String note) {
-    	showNotification(note, false);
-    }
-
-	private void showNotification(String note, boolean beep) {
+	private void showNotification(String title, String note, boolean beep) {
 
         Notification notification = new Notification(R.drawable.liltomato, null,
                 System.currentTimeMillis());
@@ -82,8 +79,7 @@ public class NotifyingService extends Service {
                 new Intent(this, TaskBrowserActivity.class), 0);
 
         // Set the info for the views that show in the notification panel.
-        notification.setLatestEventInfo(this, getText(R.string.app_name),
-                       note, contentIntent);
+        notification.setLatestEventInfo(this, title, note, contentIntent);
 
         // Send the notification.
         // We use a layout id because it is a unique number.  We use it later to cancel.
@@ -92,17 +88,17 @@ public class NotifyingService extends Service {
 	}
 	
 	public void notifyTimeEnded() {
-		showNotification("Time's up. Task - " +  mTaskDescription, true);
+		showNotification("Time's up", TASK_HEADER + mTaskDescription, true);
 	}
 
 	public void notifyTimeStarted(String taskDescription) {
 
 		mTaskDescription = taskDescription;
-		showNotification("Clock is ticking. Task - " +  taskDescription, false);
+		showNotification("Clock is ticking...", TASK_HEADER + mTaskDescription, false);
 	}
 
 	public void clearTaskNotification() {
-		showNotification("");
+		showNotification(getText(R.string.app_name).toString(), "", false);
 	}
 }
 
