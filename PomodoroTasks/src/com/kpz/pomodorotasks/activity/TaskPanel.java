@@ -69,7 +69,7 @@ public class TaskPanel {
 		initPanel();
 		showPanel(taskDescription);
 		resetTaskRun();
-		beginTimeTask();
+		beginUserTask();
 	}
 	
 	public void hidePanel(){
@@ -110,8 +110,11 @@ public class TaskPanel {
 
     	    	if (counter != null && taskControlButton.getTag().equals(BUTTON_STATE.STOP)){
     	    		resetTaskRun();
+    	    		if (!isUserTask){
+    	    			hidePanel();
+    	    		}
     	    	} else {
-    	    		beginTimeTask();
+    	    		beginUserTask();    	    			
     	    	}
     	    }
     	});
@@ -164,23 +167,23 @@ public class TaskPanel {
 		return progressBar.getProgress() != 0;
 	}
 	
-	private void beginTimeTask(){
+	private void beginUserTask(){
 		
 		int totalTime = taskDatabaseMap.fetchTaskDurationSetting() * 60;
-		beginTask(taskDescription.getText().toString(), totalTime, true);
+		isUserTask = true;
+		beginTask(taskDescription.getText().toString(), totalTime);
 	}
 	
 	private void beginBreakTask(){
 		
 		int totalTime = FIVE_MIN_IN_SEC;
-		beginTask("Take a Break", totalTime, false);
+		isUserTask = false;
+		beginTask("Take a Break", totalTime);
 	}
 	
-	private void beginTask(final String taskDesc, int totalTime, boolean p_isUserTask) {
+	private void beginTask(final String taskDesc, int totalTime) {
 	
-		isUserTask = p_isUserTask;
 		taskDescription.setText(taskDesc);
-		
 		progressBar.setMax(totalTime);
 		progressBar.getLayoutParams().height = 3;
 		counter = new TaskTimer(totalTime * ONE_SEC, ONE_SEC);
@@ -260,7 +263,7 @@ public class TaskPanel {
 	    	
 	    	if(isUserTask){
 	    		
-	        	final String[] items = {"Take 5 min break", "Cancel"};
+	        	final String[] items = {"Take 5 min break", "Skip break"};
 	    		AlertDialog.Builder builder = new AlertDialog.Builder(activity);
 	    		builder.setItems(items, new DialogInterface.OnClickListener() {
 	    		    public void onClick(DialogInterface dialog, int item) {
@@ -290,7 +293,7 @@ public class TaskPanel {
 	    	} else {
 	    		
 	    		AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-	    		builder.setMessage("   Break complete   ")
+	    		builder.setMessage("      Break complete      ")
 	    		       .setCancelable(false)
 	    		       .setNeutralButton("OK", new DialogInterface.OnClickListener() {
 	    		           public void onClick(DialogInterface dialog, int id) {
