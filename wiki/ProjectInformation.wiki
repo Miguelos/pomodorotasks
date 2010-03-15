@@ -5,11 +5,5 @@ An Android app to manage tasks using Pomodoro Technique (http://www.pomodorotech
 
 = Project Status =
 
-Under Development
-
-= Misc. Information =
-
-URL to generate QR code:
-
-http://chart.apis.google.com/chart?cht=qr&chs=350x350&chl=http%3A%2F%2Fpomodorotasks.googlecode.com%2Ffiles%2FPomodoroTasks.apk
-
+Update March 14,2010:
+Released on Android Market. Search for "Pomodoro Tasks".
