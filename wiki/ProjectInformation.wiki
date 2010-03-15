@@ -1,9 +1,0 @@
-= Introduction =
-
-An Android app to manage tasks using Pomodoro Technique (http://www.pomodorotechnique.com/).
-
-
-= Project Status =
-
-Update March 14,2010:
-Released on Android Market. Search for "Pomodoro Tasks".
