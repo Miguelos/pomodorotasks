@@ -111,10 +111,6 @@
             android:maxLines="3"
             android:maxLength="70"
             android:text="" android:hint="New Task"/>
-        <Button android:id="@+id/add_task_input_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/add_button"/>
     </LinearLayout>        	
 
 </LinearLayout>
