@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" 
+    android:id="@+id/screen"
+    android:layout_width="fill_parent" 
+    android:layout_height="fill_parent"
+    android:orientation="vertical"
+    android:background="@drawable/list_background">
+
+    <LinearLayout  
+	    android:id="@+id/runTaskPanel"
+	    android:layout_width="fill_parent" 
+	    android:layout_height="wrap_content"
+	    android:background="@drawable/run_task_panel"
+	    android:orientation="vertical"
+	    android:paddingBottom="15px">
+
+        <RelativeLayout android:layout_width="fill_parent" 
+            android:layout_height="wrap_content">
+
+           <ImageButton android:id="@+id/hide_panel_button"
+               android:layout_width="wrap_content" 
+               android:layout_height="wrap_content"
+               android:layout_alignParentRight="true"
+               android:src="@android:drawable/stat_sys_upload"
+               android:background="@android:color/transparent"
+               android:paddingRight="10sp"
+               android:paddingTop="10sp"
+               />
+                   
+           <TextView android:id="@+id/task_description" 
+               android:layout_width="fill_parent"
+               android:layout_height="wrap_content"
+               android:textColor="#000000"
+               android:paddingTop="10sp"
+               android:gravity="center_horizontal"
+               android:layout_toLeftOf="@id/hide_panel_button"
+               android:text=""/>
+
+        </RelativeLayout>
+        
+	    <RelativeLayout android:layout_width="fill_parent" 
+	        android:layout_height="30px">
+	
+	       <TextView android:id="@+id/time_left" 
+	           android:layout_width="wrap_content"
+	           android:layout_height="wrap_content"
+	           android:text="@string/zeroTime"
+	           android:layout_alignParentRight="true"
+	           android:paddingRight="10sp"
+	           android:textColor="#000000"
+               android:layout_centerVertical="true"
+	         />
+	
+	        <ImageButton android:id="@+id/control_icon"
+	            android:layout_width="wrap_content" 
+	            android:layout_height="wrap_content"
+	            android:layout_alignParentLeft="true"            
+	            android:src="@android:drawable/ic_media_play"
+	            android:background="@android:color/transparent"
+	            android:layout_centerVertical="true"
+	        />
+	        
+	        <ProgressBar android:id="@+id/task_progress_bar" 
+	           style="?android:attr/progressBarStyleHorizontal"
+	           android:progressDrawable="@drawable/task_progress_bar" 
+	           android:layout_width="fill_parent"
+	           android:layout_height="wrap_content"
+	           android:paddingRight="5sp"
+	           android:layout_toLeftOf="@id/time_left"
+	           android:layout_toRightOf="@id/control_icon"
+	           android:maxHeight="2dip"
+	           android:minHeight="2dip"
+               android:layout_centerVertical="true"
+	        /> 
+	        
+	    </RelativeLayout>
+	    
+    </LinearLayout>
+    
+    <com.kpz.pomodorotasks.activity.TouchInterceptor
+        android:id="@android:id/list"
+        android:layout_width="fill_parent"
+        android:drawSelectorOnTop="false"
+        android:fastScrollEnabled="true" 
+        android:transcriptMode="normal"
+        android:layout_height="0dip"
+        android:layout_weight="1"
+        android:divider="@drawable/list_divider"   
+        android:dividerHeight="1px"
+        android:cacheColorHint="#00000000"
+        /> 
+        
+    <LinearLayout android:id="@+id/add_task_panel"
+        android:layout_width="fill_parent" 
+        android:layout_height="wrap_content"
+        android:baselineAligned="false"
+        style="@android:style/ButtonBar">
+
+         <ImageButton android:id="@+id/hide_add_panel_button"
+             android:layout_width="wrap_content" 
+             android:layout_height="wrap_content"
+             android:src="@android:drawable/stat_sys_download"
+             android:paddingRight="10sp"
+             />
+
+        <EditText android:id="@+id/add_task_input_box"
+            android:layout_height="wrap_content"
+            android:layout_width="fill_parent"
+            android:layout_weight="1" 
+            android:maxLines="3"
+            android:maxLength="70"
+            android:text="" android:hint="New Task"/>
+    </LinearLayout>        	
+
+</LinearLayout>
