@@ -66,7 +66,7 @@ public class TouchInterceptor extends ListView {
     private int mItemHeightExpanded;
 	private Context mContext;
 	
-    private static final int SWIPE_MIN_DISTANCE = 120;
+    private static final int SWIPE_MIN_DISTANCE = 80;
     private static final int SWIPE_MAX_OFF_PATH = 250;
 	private static final int SWIPE_THRESHOLD_VELOCITY = 100; // 200 
 
@@ -96,19 +96,21 @@ public class TouchInterceptor extends ListView {
 
 						if (itemnum != INVALID_POSITION && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
 
-	                    	if (Math.abs(e1.getY() - e2.getY()) > SWIPE_MAX_OFF_PATH){
+	                    	float yDistance = Math.abs(e1.getY() - e2.getY());
+	                    	if (yDistance > SWIPE_MAX_OFF_PATH){
 						    	
 						    	return false;
 						    }
 
-							if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE) {
+							float leftToRightDistance = e2.getX() - e1.getX();
+							if (leftToRightDistance > SWIPE_MIN_DISTANCE) {
 
 								stopDragging();
 								mCheckOffListener.checkOff(itemnum);
 								unExpandViews(false);
 								return true;
 
-							} else if (e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE) {
+							} else if (-leftToRightDistance > SWIPE_MIN_DISTANCE) {
 
 								stopDragging();
 								mCheckOffListener.uncheckOff(itemnum);

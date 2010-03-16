@@ -9,11 +9,12 @@ import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.Button;
+import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -21,6 +22,7 @@ import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.SimpleCursorAdapter.ViewBinder;
+import android.widget.TextView.OnEditorActionListener;
 
 import com.kpz.pomodorotasks.map.TaskDatabaseMap;
 import com.kpz.pomodorotasks.map.TaskDatabaseMap.StatusType;
@@ -220,25 +222,21 @@ public class TaskBrowserActivity extends ListActivity {
 		
 		addTaskPanel = (LinearLayout)findViewById(R.id.add_task_panel);
 		addTaskInputBox = (EditText) findViewById(R.id.add_task_input_box);
+		addTaskInputBox.setImeOptions(EditorInfo.IME_ACTION_DONE);
+		addTaskInputBox.setOnEditorActionListener(new OnEditorActionListener() {
+			
+			public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
 
-		final Button addButton = (Button) findViewById(R.id.add_task_input_button);
-        addButton.setOnClickListener(new OnClickListener() {
-            
-        	public void onClick(View v) {
- 
-        		String noteDescription = addTaskInputBox.getText().toString().trim();
+				String noteDescription = addTaskInputBox.getText().toString().trim();
         		if (!noteDescription.equals("")){
         			createNewTask(noteDescription);
                     refreshTaskList();
                     resetAddTaskInputBox();        			
         		}
-            }
-
-			private void createNewTask(final String noteDescription) {
-            	taskDatabaseMap.createTask(noteDescription);
+				return true;
 			}
-        });
-        
+		});
+		
         hideAddPanelButton = (ImageButton) findViewById(R.id.hide_add_panel_button);
         hideAddPanelButton.setVisibility(View.GONE);
         hideAddPanelButton.setOnClickListener(new OnClickListener() {
@@ -249,7 +247,11 @@ public class TaskBrowserActivity extends ListActivity {
 			}
         });	
 	}
-    
+
+	private void createNewTask(final String noteDescription) {
+    	taskDatabaseMap.createTask(noteDescription);
+	}
+	
 	private void resetAddTaskInputBox() {
 		
 		addTaskInputBox.setText("");
