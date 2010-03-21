@@ -78,18 +78,57 @@
 	    
     </LinearLayout>
     
+<FrameLayout
+        android:layout_width="fill_parent" 
+        android:layout_height="0dip"
+        android:layout_weight="1" >
+    
     <com.kpz.pomodorotasks.activity.TouchInterceptor
         android:id="@android:id/list"
         android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
         android:drawSelectorOnTop="false"
         android:fastScrollEnabled="true" 
         android:transcriptMode="normal"
-        android:layout_height="0dip"
-        android:layout_weight="1"
         android:divider="@drawable/list_divider"   
         android:dividerHeight="1px"
         android:cacheColorHint="#00000000"
         /> 
+        
+      <RelativeLayout android:id="@+id/list_empty" 
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            >
+                                
+        <TextView android:id="@+id/second_step" 
+            android:layout_centerInParent="true" 
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Step 2 - Select task to start the clock"
+            android:textColor="@color/dark_gray"
+            android:gravity="center_horizontal"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Step 1 - Add a task"
+            android:textColor="@color/dark_gray"
+            android:layout_above="@id/second_step"
+            android:layout_alignLeft="@id/second_step"
+            />
+        
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Step 3 - Swipe right to complete task"
+            android:textColor="@color/dark_gray"
+            android:layout_below="@id/second_step"
+            android:layout_alignLeft="@id/second_step"
+            />
+        
+    </RelativeLayout>           
+
+</FrameLayout>
         
     <LinearLayout android:id="@+id/add_task_panel"
         android:layout_width="fill_parent" 
