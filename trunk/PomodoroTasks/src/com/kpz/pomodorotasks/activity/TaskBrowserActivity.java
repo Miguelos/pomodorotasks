@@ -77,6 +77,7 @@ public class TaskBrowserActivity extends ListActivity {
 	private void initView() {
 
 		setContentView(NOTIFICATION_ID);
+		getListView().setEmptyView(findViewById(R.id.list_empty));
         
         initDatabaseHelper();        
         initTasksList();
