@@ -25,8 +25,9 @@ import java.util.Date;
 
 public class TaskPanel {
 	
-	private static final int ONE_SEC = 1000;
-	private static final int FIVE_MIN_IN_SEC = 300;
+	private static final int ONE_SEC_IN_MILLI_SEC = 1000;
+	private static final int BREAK_TIME_IN_MIN = 5;
+	private static final int EVERY_FOUR_BREAK_TIME_IN_MIN = 15;
 
 	private LinearLayout runTaskPanel;
 	private ImageButton taskControlButton;
@@ -62,7 +63,7 @@ public class TaskPanel {
     	progressBar = (ProgressBar)pActivity.findViewById(R.id.task_progress_bar);
     	taskDatabaseMap = pTaskDatabaseMap;
     	activity = pActivity;
-    	pomdoroTrackPanel = trackPanel;
+    	pomodoroTrackPanel = trackPanel;
 	}
 
 	public void startTask(String taskDescription) {
@@ -170,24 +171,25 @@ public class TaskPanel {
 	
 	private void beginUserTask(){
 		
-		int totalTime = taskDatabaseMap.fetchTaskDurationSetting() * 60;
+		int totalTimeInMin = taskDatabaseMap.fetchTaskDurationSetting();
 		isUserTask = true;
-		beginTask(taskDescription.getText().toString(), totalTime);
+		beginTask(taskDescription.getText().toString(), totalTimeInMin);
 	}
 	
-	private void beginBreakTask(){
+	private void beginBreakTask(int breakTimeInMin){
 		
-		int totalTime = FIVE_MIN_IN_SEC;
 		isUserTask = false;
-		beginTask("Take a Break", totalTime);
+		beginTask("Take a Break", breakTimeInMin);
 	}
 	
-	private void beginTask(final String taskDesc, int totalTime) {
+	private void beginTask(final String taskDesc, int totalTimeInMin) {
 	
 		taskDescription.setText(taskDesc);
-		progressBar.setMax(totalTime);
+		progressBar.setMax(totalTimeInMin);
 		progressBar.getLayoutParams().height = 3;
-		counter = new TaskTimer(totalTime * ONE_SEC, ONE_SEC);
+		int totalTimeInMilliSec = totalTimeInMin * 60 * ONE_SEC_IN_MILLI_SEC;
+//		totalTimeInMilliSec = 3 * ONE_SEC_IN_MILLI_SEC; // TODO comment this when not testing!
+		counter = new TaskTimer(totalTimeInMilliSec);
 		//counter = new ProgressThread(handler);
 		counter.start();
 		
@@ -225,8 +227,8 @@ public class TaskPanel {
 
     public class TaskTimer extends CountDownTimer{
 	    
-		public TaskTimer(long millisInFuture, long countDownInterval) {
-	    	super(millisInFuture, countDownInterval);
+		public TaskTimer(long millisInFuture) {
+	    	super(millisInFuture, ONE_SEC_IN_MILLI_SEC);
 		}
 
 		@Override
@@ -240,7 +242,7 @@ public class TaskPanel {
 			final DateFormat dateFormat = new SimpleDateFormat("mm:ss");
 			String timeStr = dateFormat.format(new Date(millisUntilFinished));
             timeLeft.setText(timeStr);
-           	progressBar.setProgress(new Long(millisUntilFinished / ONE_SEC).intValue());
+           	progressBar.setProgress(new Long(millisUntilFinished / ONE_SEC_IN_MILLI_SEC).intValue());
 		}
 
 		private void beep() {
@@ -264,8 +266,17 @@ public class TaskPanel {
 	    	
 	    	if(isUserTask){
 	    		
-	    		pomdoroTrackPanel.addPomodoro();
-	        	final String[] items = {"Take 5 min break", "Skip break"};
+	    		pomodoroTrackPanel.addPomodoro();
+	    		
+	    		int count = pomodoroTrackPanel.getCurrentPomodoroCount();
+	    		int _breakTime = BREAK_TIME_IN_MIN;
+	    		if (count % 4 == 0){
+	    			
+					_breakTime = EVERY_FOUR_BREAK_TIME_IN_MIN;
+	    		}
+	    		final int breakTime = _breakTime;
+	    		
+	        	final String[] items = {"Take " + breakTime + " min break", "Skip break"};
 	    		AlertDialog.Builder builder = new AlertDialog.Builder(activity);
 	    		builder.setItems(items, new DialogInterface.OnClickListener() {
 	    		    public void onClick(DialogInterface dialog, int item) {
@@ -273,7 +284,7 @@ public class TaskPanel {
 	    		    	//Toast.makeText(getApplicationContext(), items[item], Toast.LENGTH_SHORT).show();
 	    		    	switch (item) {
 	    				case 0:
-	    					beginBreakTask();
+	    					beginBreakTask(breakTime);
 	    					break;
 
 	    				case 1:
@@ -310,5 +321,5 @@ public class TaskPanel {
 	    	}
         }
     };
-	private PomodoroTrackPanel pomdoroTrackPanel;
+	private PomodoroTrackPanel pomodoroTrackPanel;
 }

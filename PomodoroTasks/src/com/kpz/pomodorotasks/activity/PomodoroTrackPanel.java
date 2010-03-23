@@ -15,7 +15,7 @@ import com.kpz.pomodorotasks.map.TaskDatabaseMap;
 
 public class PomodoroTrackPanel {
 
-	private static final int POMODOROS_PER_ROW = 7;
+	private static final int POMODOROS_PER_ROW = 8;
 	private Activity activity;
 	private TableLayout trackPanel;
 	private TaskDatabaseMap taskDatabaseMap;
@@ -95,8 +95,8 @@ public class PomodoroTrackPanel {
 		
 		currentTableRow.addView(pomodoro);
 		TableRow.LayoutParams layoutParams = (TableRow.LayoutParams)pomodoro.getLayoutParams();
-		layoutParams.height=35;
-		layoutParams.width=35;
+		layoutParams.height=25;
+		layoutParams.width=25;
 		
 		resetClearButtonVisibility();
 	}
@@ -111,5 +111,9 @@ public class PomodoroTrackPanel {
 			
 			clearButton.setVisibility(View.INVISIBLE);
 		}
+	}
+
+	public int getCurrentPomodoroCount() {
+		return count;
 	}
 }
