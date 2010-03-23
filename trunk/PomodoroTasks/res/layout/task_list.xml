@@ -19,7 +19,7 @@
                android:layout_width="wrap_content" 
                android:layout_height="wrap_content"
                android:src="@android:drawable/presence_offline"
-               android:background="@android:color/transparent"
+               android:background="@drawable/run_task_panel"
                android:paddingRight="5sp"
                android:paddingTop="5sp"
                android:minWidth="35sp"
