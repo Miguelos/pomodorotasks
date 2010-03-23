@@ -45,7 +45,7 @@ public class TaskPanel {
 		PLAY, STOP
 	}
 
-	public TaskPanel(Activity pActivity, TaskDatabaseMap pTaskDatabaseMap) {
+	public TaskPanel(Activity pActivity, PomodoroTrackPanel trackPanel, TaskDatabaseMap pTaskDatabaseMap) {
 		runTaskPanel = (LinearLayout)pActivity.findViewById(R.id.runTaskPanel);
 		taskControlButton = (ImageButton)pActivity.findViewById(R.id.control_icon);
 		hideButton = (ImageButton)pActivity.findViewById(R.id.hide_panel_button);
@@ -62,6 +62,7 @@ public class TaskPanel {
     	progressBar = (ProgressBar)pActivity.findViewById(R.id.task_progress_bar);
     	taskDatabaseMap = pTaskDatabaseMap;
     	activity = pActivity;
+    	pomdoroTrackPanel = trackPanel;
 	}
 
 	public void startTask(String taskDescription) {
@@ -190,7 +191,7 @@ public class TaskPanel {
 		//counter = new ProgressThread(handler);
 		counter.start();
 		
-		hideButton.setVisibility(View.INVISIBLE);
+		hideButton.setVisibility(View.GONE);
 		taskControlButton.setImageResource(R.drawable.stop);
 		taskControlButton.setTag(BUTTON_STATE.STOP);
 
@@ -263,6 +264,7 @@ public class TaskPanel {
 	    	
 	    	if(isUserTask){
 	    		
+	    		pomdoroTrackPanel.addPomodoro();
 	        	final String[] items = {"Take 5 min break", "Skip break"};
 	    		AlertDialog.Builder builder = new AlertDialog.Builder(activity);
 	    		builder.setItems(items, new DialogInterface.OnClickListener() {
@@ -293,7 +295,7 @@ public class TaskPanel {
 	    	} else {
 	    		
 	    		AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-	    		builder.setMessage("      Break complete      ")
+	    		builder.setMessage("         Break Complete         ")
 	    		       .setCancelable(false)
 	    		       .setNeutralButton("OK", new DialogInterface.OnClickListener() {
 	    		           public void onClick(DialogInterface dialog, int id) {
@@ -308,4 +310,5 @@ public class TaskPanel {
 	    	}
         }
     };
+	private PomodoroTrackPanel pomdoroTrackPanel;
 }

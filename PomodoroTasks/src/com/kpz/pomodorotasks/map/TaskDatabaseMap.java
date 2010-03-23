@@ -53,7 +53,8 @@ public class TaskDatabaseMap {
 	
 	enum ConfigType {
 
-		TIME_DURATION("25");
+		TIME_DURATION("25"),
+		CURRENT_POMODOROS("0");
 
 		private String defaultValue;
 
@@ -72,10 +73,13 @@ public class TaskDatabaseMap {
 				     , "create table " + CONFIG_TABLE 
 				  					+ " (_id integer primary key autoincrement" + ", name text" + ", value text not null);"
 				     , "insert into " + CONFIG_TABLE 
-				  					+ " (name, value) VALUES ('" + ConfigType.TIME_DURATION + "', '" + ConfigType.TIME_DURATION.defaultValue + "');"}; 					
-				  					;
+				  					+ " (name, value) VALUES ('" + ConfigType.TIME_DURATION + "', '" + ConfigType.TIME_DURATION.defaultValue + "');"
+  					 , "insert into " + CONFIG_TABLE 
+				  					+ " (name, value) VALUES ('" + ConfigType.CURRENT_POMODOROS + "', '" + ConfigType.CURRENT_POMODOROS.defaultValue + "');"				
+					
+					};
 
-	private static final int DATABASE_VERSION = 3;
+	private static final int DATABASE_VERSION = 4;
 
 	private final Context mCtx;
 
@@ -252,7 +256,26 @@ public class TaskDatabaseMap {
 
 	public int fetchTaskDurationSetting() {
 		
-		Cursor cursor = mDb.query(true, CONFIG_TABLE, new String[] {KEY_CONFIG_VALUE}, KEY_CONFIG_NAME + "= '" +  ConfigType.TIME_DURATION.name() + "'", null, null, null, null, null);
+		return fetchConfigValueInInteger(ConfigType.TIME_DURATION);
+	}
+	
+	public boolean updateTaskDurationSetting(int progress) {
+
+		return updateConfigValue(ConfigType.TIME_DURATION, Integer.toString(progress));
+	}
+	
+	public int fetchCurrentPomodoros() {
+		
+		return fetchConfigValueInInteger(ConfigType.CURRENT_POMODOROS);
+	}
+
+	public boolean updateCurrentPomodoros(int count) {
+
+		return updateConfigValue(ConfigType.CURRENT_POMODOROS, Integer.toString(count));
+	}
+
+	private int fetchConfigValueInInteger(ConfigType configType) {
+		Cursor cursor = mDb.query(true, CONFIG_TABLE, new String[] {KEY_CONFIG_VALUE}, KEY_CONFIG_NAME + "= '" +  configType.name() + "'", null, null, null, null, null);
 
 		if (cursor != null) {
 			cursor.moveToFirst();
@@ -260,13 +283,11 @@ public class TaskDatabaseMap {
 
 		return Integer.parseInt(cursor.getString(cursor.getColumnIndex(KEY_CONFIG_VALUE)));
 	}
-
-	public boolean updateTaskDurationSetting(int progress) {
-
+	
+	private boolean updateConfigValue(ConfigType configType, String progress) {
 		ContentValues args = new ContentValues();
-		args.put(KEY_CONFIG_VALUE, Integer.toString(progress));
+		args.put(KEY_CONFIG_VALUE, progress);
 
-		return mDb.update(CONFIG_TABLE, args, KEY_CONFIG_NAME + "= '" + ConfigType.TIME_DURATION.name() + "'", null) > 0;
-
+		return mDb.update(CONFIG_TABLE, args, KEY_CONFIG_NAME + "= '" + configType.name() + "'", null) > 0;
 	}
 }
