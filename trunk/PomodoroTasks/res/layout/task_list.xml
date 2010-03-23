@@ -7,6 +7,54 @@
     android:orientation="vertical"
     android:background="@drawable/list_background">
 
+    <RelativeLayout  
+        android:layout_width="fill_parent" 
+        android:layout_height="wrap_content"
+        android:background="@drawable/run_task_panel"
+        android:orientation="horizontal"
+        android:paddingBottom="5px"
+        >
+    
+    <ImageButton 
+               android:layout_width="wrap_content" 
+               android:layout_height="wrap_content"
+               android:src="@android:drawable/presence_offline"
+               android:background="@android:color/transparent"
+               android:paddingRight="5sp"
+               android:paddingTop="5sp"
+               android:minWidth="35sp"
+               android:minHeight="35sp"
+               android:layout_alignParentLeft="true"
+               android:visibility="invisible"
+               android:layout_weight="1" 
+               />    
+
+    <TableLayout  
+        android:id="@+id/trackPanel"
+        android:layout_width="fill_parent" 
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        >
+        
+    </TableLayout>
+
+    <ImageButton 
+               android:id="@+id/pomodoro_clear"
+               android:layout_width="wrap_content"
+               android:layout_height="wrap_content"
+               android:src="@android:drawable/presence_offline"
+               android:background="@android:color/transparent"
+               android:paddingRight="5sp"
+               android:paddingTop="5sp"
+               android:minWidth="35sp"
+               android:minHeight="35sp"
+               android:visibility="invisible"
+               android:layout_alignParentRight="true"
+               android:layout_weight="1" 
+               />
+
+    </RelativeLayout>
+
     <LinearLayout  
 	    android:id="@+id/runTaskPanel"
 	    android:layout_width="fill_parent" 
@@ -16,7 +64,8 @@
 	    android:paddingBottom="15px">
 
         <RelativeLayout android:layout_width="fill_parent" 
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:paddingTop="5sp">
 
            <ImageButton android:id="@+id/hide_panel_button"
                android:layout_width="wrap_content" 
@@ -25,14 +74,13 @@
                android:src="@android:drawable/stat_sys_upload"
                android:background="@android:color/transparent"
                android:paddingRight="10sp"
-               android:paddingTop="10sp"
                />
                    
            <TextView android:id="@+id/task_description" 
                android:layout_width="fill_parent"
                android:layout_height="wrap_content"
                android:textColor="#000000"
-               android:paddingTop="10sp"
+               android:textStyle="bold"
                android:gravity="center_horizontal"
                android:layout_toLeftOf="@id/hide_panel_button"
                android:text=""/>
@@ -86,7 +134,8 @@
     <com.kpz.pomodorotasks.activity.TouchInterceptor
         android:id="@android:id/list"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="fill_parent"
+        android:layout_weight="2"
         android:drawSelectorOnTop="false"
         android:fastScrollEnabled="true" 
         android:transcriptMode="normal"
@@ -94,8 +143,9 @@
         android:dividerHeight="1px"
         android:cacheColorHint="#00000000"
         /> 
-        
-      <RelativeLayout android:id="@+id/list_empty" 
+    
+
+    <RelativeLayout android:id="@+id/list_empty" 
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
             >

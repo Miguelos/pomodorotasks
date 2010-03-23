@@ -29,8 +29,6 @@ import com.kpz.pomodorotasks.map.TaskDatabaseMap.StatusType;
 
 public class TaskBrowserActivity extends ListActivity {
     
-	private static final String LOG_TAG = "PomodoroTasks";
-
 	private static final int NOTIFICATION_ID = R.layout.task_list;
 	
 	private static final int ACTIVITY_EDIT = 1;
@@ -41,7 +39,8 @@ public class TaskBrowserActivity extends ListActivity {
 	private static final int MAIN_MENU_OPTIONS_ID = MAIN_MENU_DELETE_ALL_ID + 2;
 	private static final int MAIN_MENU_QUIT_ID = MAIN_MENU_DELETE_ALL_ID + 3;
 	private static final int MAIN_MENU_ADD_TASK_ID = MAIN_MENU_DELETE_ALL_ID + 4;
-	
+
+	private PomodoroTrackPanel trackPanel;
 	private TaskPanel taskPanel;
 	private ListView taskList;
     private TaskDatabaseMap taskDatabaseMap;
@@ -83,12 +82,17 @@ public class TaskBrowserActivity extends ListActivity {
         initTasksList();
         initAddTaskPanel();
         refreshTaskPanelForOrientation();
+        initTrackPanel();
         initAndHideRunTaskPanel();   
+	}
+
+	private void initTrackPanel() {
+		trackPanel = new PomodoroTrackPanel(this, taskDatabaseMap);
 	}
 
 	private void initAndHideRunTaskPanel() {
 		
-		taskPanel = new TaskPanel(this, taskDatabaseMap);
+		taskPanel = new TaskPanel(this, trackPanel, taskDatabaseMap);
 		taskPanel.hidePanel();
 	}
 
@@ -322,11 +326,28 @@ public class TaskBrowserActivity extends ListActivity {
         	return true;
         	
         case MAIN_MENU_DELETE_ALL_ID:
-        	taskDatabaseMap.deleteAll();
-	        refreshTaskList();
-			if (!isTaskExists(taskPanel.getCurrentTaskText())){
-				taskPanel.refreshTaskPanel();				
-			}
+        	
+    		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+    		builder.setMessage("        Clear all tasks?        ")
+    		       .setCancelable(true)
+    		       .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+    		           public void onClick(DialogInterface dialog, int id) {
+
+	    		           	taskDatabaseMap.deleteAll();
+	    			        refreshTaskList();
+	    					if (!isTaskExists(taskPanel.getCurrentTaskText())){
+	    						taskPanel.refreshTaskPanel();				
+	    					}
+    		           }
+    		       })
+    		       .setNegativeButton("No", new DialogInterface.OnClickListener() {
+    		           public void onClick(DialogInterface dialog, int id) {
+
+    		           }
+    		       });
+    		AlertDialog alert = builder.create();
+    		alert.show();
+    		
 	        return true;
         	
         case MAIN_MENU_OPTIONS_ID:
@@ -437,17 +458,8 @@ public class TaskBrowserActivity extends ListActivity {
     	public void drop(int from, int to) {
 
     		move(from, to);
-        	resetBottomMargin();
         	refreshTaskList();
         }
-
-		private void resetBottomMargin() {
-			LinearLayout.LayoutParams viewGroupParams = (LinearLayout.LayoutParams)getListView().getLayoutParams();
-			if (viewGroupParams.bottomMargin != 0){
-				viewGroupParams.bottomMargin = 0;
-	    		getListView().setLayoutParams(viewGroupParams);				
-			}
-		}
 
 		private void move(int from, int to) {
 			
