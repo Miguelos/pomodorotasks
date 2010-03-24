@@ -3,7 +3,7 @@
                android:id="@+id/pomodoro"
                android:layout_width="fill_parent" 
                android:layout_height="wrap_content"
-               android:src="@drawable/launcher_2"
+               android:src="@drawable/liltomato"
                android:background="@android:color/transparent"
                android:paddingRight="5sp"
                android:paddingTop="5sp"

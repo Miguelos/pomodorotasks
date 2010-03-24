@@ -27,6 +27,12 @@ public class PomodoroTrackPanel {
 		activity = pActivity;
 		trackPanel = (TableLayout)activity.findViewById(R.id.trackPanel);
 		taskDatabaseMap = pTaskDatabaseMap;
+		initClearButton();
+		resetTrackPanel();
+		initPomodoros();
+	}
+
+	private void initClearButton() {
 		clearButton = (ImageButton)activity.findViewById(R.id.pomodoro_clear);
 		clearButton.setOnClickListener(new OnClickListener() {
 			
@@ -38,7 +44,7 @@ public class PomodoroTrackPanel {
 	    		           public void onClick(DialogInterface dialog, int id) {
 
 	    		        	   taskDatabaseMap.updateCurrentPomodoros(0);
-	    		        	   removeAllPomodoros();
+	    		        	   resetTrackPanel();
 	    		           }
 	    		       })
 	    		       .setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -50,54 +56,62 @@ public class PomodoroTrackPanel {
 	    		alert.show();
 			}
 		});
-
-		resetTrackPanel();
-		initPomodoros();
 	}
 	
 	private void initPomodoros() {
 		
 		count = taskDatabaseMap.fetchCurrentPomodoros();
-		for (int i = 0; i < count; i++) {
-			addPomodoroToView();
+		for (int i = 1; i <= count; i++) {
+			addPomodoroToView(i);
 		}
 	}
 
 	public void addPomodoro() {
 		count++;
-		addPomodoroToView();
+		addPomodoroToView(count);
 		taskDatabaseMap.updateCurrentPomodoros(count);
-	}
-
-	private void removeAllPomodoros() {
-		resetTrackPanel();
 	}
 
 	private void resetTrackPanel() {
 		count = 0;
 		trackPanel.removeAllViews();
-		createNewTableRow();
 		clearButton.setVisibility(View.INVISIBLE);
 	}
 
 	private void createNewTableRow() {
 		currentTableRow = (TableRow)activity.getLayoutInflater().inflate(R.layout.pomororo_table_row, null);
 		trackPanel.addView(currentTableRow);
+		for (int i = 1; i <= POMODOROS_PER_ROW; i++) {
+			ImageView pomodoro = (ImageView)activity.getLayoutInflater().inflate(R.layout.pomodoro_icon, null);
+			if (i % 4 == 0){
+				pomodoro.setImageResource(R.drawable.launcher_2);
+			}
+
+			currentTableRow.addView(pomodoro);
+			TableRow.LayoutParams layoutParams = (TableRow.LayoutParams)pomodoro.getLayoutParams();
+			layoutParams.height=25;
+			layoutParams.width=25;
+			pomodoro.setVisibility(View.INVISIBLE);
+		}
 	}
 	
-	private void addPomodoroToView() {
-		ImageView pomodoro = (ImageView)activity.getLayoutInflater().inflate(R.layout.pomodoro_icon, null);
+	private void addPomodoroToView(int pomodoroCount) {
+		
+		int column = pomodoroCount % POMODOROS_PER_ROW;
+		if (column == 0){
+			column = POMODOROS_PER_ROW - 1;
+		} else {
+			column--;
+		}
 
-		if (currentTableRow.getChildCount() == POMODOROS_PER_ROW){
+		if (column == 0){
 			
 			createNewTableRow();
 		}
 		
-		currentTableRow.addView(pomodoro);
-		TableRow.LayoutParams layoutParams = (TableRow.LayoutParams)pomodoro.getLayoutParams();
-		layoutParams.height=25;
-		layoutParams.width=25;
 		
+		View pomodoro = currentTableRow.getVirtualChildAt(column);
+		pomodoro.setVisibility(View.VISIBLE);
 		resetClearButtonVisibility();
 	}
 

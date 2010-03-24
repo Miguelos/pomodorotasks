@@ -188,7 +188,7 @@ public class TaskPanel {
 		progressBar.setMax(totalTimeInMin);
 		progressBar.getLayoutParams().height = 3;
 		int totalTimeInMilliSec = totalTimeInMin * 60 * ONE_SEC_IN_MILLI_SEC;
-//		totalTimeInMilliSec = 3 * ONE_SEC_IN_MILLI_SEC; // TODO comment this when not testing!
+		//totalTimeInMilliSec = 3 * ONE_SEC_IN_MILLI_SEC; // TODO comment this when not testing!
 		counter = new TaskTimer(totalTimeInMilliSec);
 		//counter = new ProgressThread(handler);
 		counter.start();
