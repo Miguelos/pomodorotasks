@@ -7,11 +7,12 @@
     android:orientation="vertical"
     android:background="@drawable/list_background">
 
-    <RelativeLayout  
+    <LinearLayout  
         android:layout_width="fill_parent" 
         android:layout_height="wrap_content"
         android:background="@drawable/run_task_panel"
         android:orientation="horizontal"
+        android:paddingTop="10sp"
         android:paddingBottom="5px"
         >
     
@@ -21,39 +22,38 @@
                android:src="@android:drawable/presence_offline"
                android:background="@drawable/run_task_panel"
                android:paddingRight="5sp"
-               android:paddingTop="5sp"
                android:minWidth="35sp"
                android:minHeight="35sp"
-               android:layout_alignParentLeft="true"
                android:visibility="invisible"
-               android:layout_weight="1" 
                />    
 
     <TableLayout  
         android:id="@+id/trackPanel"
-        android:layout_width="fill_parent" 
+        android:layout_width="0dip" 
+        android:layout_weight="1"
         android:layout_height="wrap_content"
-        android:gravity="center_horizontal"
+        android:minHeight="25sp"
+        android:gravity="left"
+        android:background="@drawable/pomodoro_bar"
+        android:paddingBottom="5sp"
         >
-        
+
     </TableLayout>
 
     <ImageButton 
-               android:id="@+id/pomodoro_clear"
-               android:layout_width="wrap_content"
-               android:layout_height="wrap_content"
-               android:src="@android:drawable/presence_offline"
-               android:background="@android:color/transparent"
-               android:paddingRight="5sp"
-               android:paddingTop="5sp"
-               android:minWidth="35sp"
-               android:minHeight="35sp"
-               android:visibility="invisible"
-               android:layout_alignParentRight="true"
-               android:layout_weight="1" 
-               />
-
-    </RelativeLayout>
+        android:id="@+id/pomodoro_clear"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@android:drawable/presence_offline"
+        android:background="@android:color/transparent"
+        android:paddingRight="5sp"
+        android:minWidth="35sp"
+        android:layout_gravity="center_vertical"
+        android:layout_centerVertical="true"
+        android:visibility="visible"
+        />
+                   
+    </LinearLayout>
 
     <LinearLayout  
 	    android:id="@+id/runTaskPanel"
