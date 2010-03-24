@@ -149,14 +149,24 @@
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
             >
-                                
+
+        <TextView android:id="@+id/third_step"
+            android:layout_centerInParent="true"
+            android:gravity="center_horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Step 3 - Work on the task until time is up "
+            android:textColor="@color/dark_gray"
+            />
+                                            
         <TextView android:id="@+id/second_step" 
-            android:layout_centerInParent="true" 
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Step 2 - Select task to start the clock"
             android:textColor="@color/dark_gray"
-            android:gravity="center_horizontal"/>
+            android:layout_above="@id/third_step"
+            android:layout_alignLeft="@id/third_step"
+            />
 
         <TextView
             android:layout_width="wrap_content"
@@ -164,17 +174,18 @@
             android:text="Step 1 - Add a task"
             android:textColor="@color/dark_gray"
             android:layout_above="@id/second_step"
-            android:layout_alignLeft="@id/second_step"
+            android:layout_alignLeft="@id/third_step"
             />
         
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Step 3 - Swipe right to complete task"
+            android:text="Step 4 - Swipe right to complete task (swipe left to undo)"
             android:textColor="@color/dark_gray"
-            android:layout_below="@id/second_step"
-            android:layout_alignLeft="@id/second_step"
+            android:layout_below="@id/third_step"
+            android:layout_alignLeft="@id/third_step"
             />
+            
         
     </RelativeLayout>           
 
