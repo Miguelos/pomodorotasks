@@ -50,7 +50,6 @@ public class TaskPanel {
 		runTaskPanel = (LinearLayout)pActivity.findViewById(R.id.runTaskPanel);
 		taskControlButton = (ImageButton)pActivity.findViewById(R.id.control_icon);
 		hideButton = (ImageButton)pActivity.findViewById(R.id.hide_panel_button);
-		hideButton.setVisibility(View.VISIBLE);
 		hideButton.setOnClickListener(new View.OnClickListener() {
 			
 			public void onClick(View v) {
@@ -111,6 +110,7 @@ public class TaskPanel {
     	    public void onClick(View view) {
 
     	    	if (counter != null && taskControlButton.getTag().equals(BUTTON_STATE.STOP)){
+    	    		hideButton.setVisibility(View.VISIBLE);
     	    		resetTaskRun();
     	    		if (!isUserTask){
     	    			hidePanel();
@@ -146,7 +146,6 @@ public class TaskPanel {
 		resetTimeLeftIfTaskNotRunning();
         taskControlButton.setImageResource(R.drawable.play);
         taskControlButton.setTag(BUTTON_STATE.PLAY);
-        hideButton.setVisibility(View.VISIBLE);
 	}
 	
 	public void resetTimeLeftIfTaskNotRunning() {
@@ -185,8 +184,8 @@ public class TaskPanel {
 	private void beginTask(final String taskDesc, int totalTimeInMin) {
 	
 		taskDescription.setText(taskDesc);
-		int totalTimeInSec = totalTimeInMin * 60;
-//		int totalTimeInSec = 3; 
+//		int totalTimeInSec = totalTimeInMin * 60;
+		int totalTimeInSec = 3; 
 		progressBar.setMax(totalTimeInSec);
 		progressBar.getLayoutParams().height = 3;
 		counter = new TaskTimer(totalTimeInSec * ONE_SEC_IN_MILLI_SEC);

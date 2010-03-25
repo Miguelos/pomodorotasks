@@ -148,45 +148,75 @@
     <RelativeLayout android:id="@+id/list_empty" 
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
+            android:paddingLeft="5px"
+            android:paddingRight="5px"
             >
 
-        <TextView android:id="@+id/third_step"
-            android:layout_centerInParent="true"
-            android:gravity="center_horizontal"
+    <RelativeLayout  
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Step 3 - Work on the task until time is up "
+            android:background="@drawable/quick_start_help_panel"
+            android:gravity="center_horizontal"            
+            android:layout_centerInParent="true"
+            android:paddingLeft="5px"
+            android:paddingRight="5px"
+            >
+
+        <TextView android:id="@+id/zero_step"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Step 3 - Work on the task until time is up"
+            android:layout_centerHorizontal="true"
             android:textColor="@color/dark_gray"
+            android:visibility="invisible"
             />
-                                            
+
+        <TextView android:id="@+id/first_step"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Step 1 - Add a task"
+            android:textColor="@color/dark_gray"
+            android:layout_below="@id/zero_step"
+            android:layout_alignLeft="@id/zero_step"
+            />
+            
         <TextView android:id="@+id/second_step" 
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Step 2 - Select task to start the clock"
             android:textColor="@color/dark_gray"
-            android:layout_above="@id/third_step"
-            android:layout_alignLeft="@id/third_step"
+            android:layout_below="@id/first_step"
+            android:layout_alignLeft="@id/zero_step"
             />
 
-        <TextView
+        <TextView android:id="@+id/third_step"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Step 1 - Add a task"
+            android:text="Step 3 - Work on the task until time is up"
             android:textColor="@color/dark_gray"
-            android:layout_above="@id/second_step"
-            android:layout_alignLeft="@id/third_step"
+            android:layout_below="@id/second_step"
+            android:layout_alignLeft="@id/zero_step"
             />
-        
-        <TextView
+                                            
+        <TextView android:id="@+id/fourth_step"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Step 4 - Swipe right to complete task (swipe left to undo)"
             android:textColor="@color/dark_gray"
             android:layout_below="@id/third_step"
-            android:layout_alignLeft="@id/third_step"
+            android:layout_alignLeft="@id/zero_step"
             />
             
+        <TextView 
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textColor="@color/dark_gray"
+            android:layout_below="@id/fourth_step"
+            android:layout_alignLeft="@id/zero_step"
+            />            
         
+    </RelativeLayout>           
     </RelativeLayout>           
 
 </FrameLayout>
