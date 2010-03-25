@@ -19,11 +19,10 @@
     <ImageButton 
                android:layout_width="wrap_content" 
                android:layout_height="wrap_content"
-               android:src="@android:drawable/presence_offline"
+               android:src="@drawable/presence_busy_small"
                android:background="@drawable/run_task_panel"
-               android:paddingRight="5sp"
-               android:minWidth="35sp"
-               android:minHeight="35sp"
+               android:paddingLeft="5sp"
+               android:minWidth="40sp"
                android:layout_gravity="center_vertical"
                android:visibility="invisible"
                />    
@@ -46,10 +45,10 @@
         android:id="@+id/pomodoro_clear"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@android:drawable/presence_offline"
-        android:background="@android:color/transparent"
+        android:src="@drawable/presence_busy_small"
+        android:background="@drawable/run_task_panel"
         android:paddingRight="5sp"
-        android:minWidth="35sp"
+        android:minWidth="40sp"
         android:layout_gravity="center_vertical"
         android:visibility="visible"
         />
