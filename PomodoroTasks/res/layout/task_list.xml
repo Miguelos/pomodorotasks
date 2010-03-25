@@ -24,6 +24,7 @@
                android:paddingRight="5sp"
                android:minWidth="35sp"
                android:minHeight="35sp"
+               android:layout_gravity="center_vertical"
                android:visibility="invisible"
                />    
 
@@ -35,6 +36,7 @@
         android:minHeight="25sp"
         android:gravity="left"
         android:background="@drawable/pomodoro_bar"
+        android:layout_gravity="center_vertical"
         android:paddingBottom="5sp"
         >
 
@@ -49,7 +51,6 @@
         android:paddingRight="5sp"
         android:minWidth="35sp"
         android:layout_gravity="center_vertical"
-        android:layout_centerVertical="true"
         android:visibility="visible"
         />
                    
@@ -61,28 +62,18 @@
 	    android:layout_height="wrap_content"
 	    android:background="@drawable/run_task_panel"
 	    android:orientation="vertical"
-	    android:paddingBottom="15px">
+	    android:paddingBottom="5px">
 
         <RelativeLayout android:layout_width="fill_parent" 
             android:layout_height="wrap_content"
             android:paddingTop="5sp">
 
-           <ImageButton android:id="@+id/hide_panel_button"
-               android:layout_width="wrap_content" 
-               android:layout_height="wrap_content"
-               android:layout_alignParentRight="true"
-               android:src="@android:drawable/stat_sys_upload"
-               android:background="@android:color/transparent"
-               android:paddingRight="10sp"
-               />
-                   
            <TextView android:id="@+id/task_description" 
                android:layout_width="fill_parent"
                android:layout_height="wrap_content"
                android:textColor="#000000"
                android:textStyle="bold"
                android:gravity="center_horizontal"
-               android:layout_toLeftOf="@id/hide_panel_button"
                android:text=""/>
 
         </RelativeLayout>
@@ -107,6 +98,7 @@
 	            android:src="@android:drawable/ic_media_play"
 	            android:background="@android:color/transparent"
 	            android:layout_centerVertical="true"
+	            android:paddingLeft="5px"
 	        />
 	        
 	        <ProgressBar android:id="@+id/task_progress_bar" 
@@ -124,6 +116,20 @@
 	        
 	    </RelativeLayout>
 	    
+        <RelativeLayout android:layout_width="fill_parent" 
+            android:layout_height="wrap_content"
+            >
+
+            <ImageButton android:id="@+id/hide_panel_button"
+               android:layout_width="wrap_content" 
+               android:layout_height="wrap_content"
+               android:layout_alignParentRight="true"
+               android:src="@android:drawable/stat_sys_upload"
+               android:background="@android:color/transparent"
+               android:paddingRight="10sp"
+               />
+               
+        </RelativeLayout>
     </LinearLayout>
     
 <FrameLayout
@@ -162,6 +168,15 @@
             android:paddingRight="5px"
             >
 
+        <TextView android:id="@+id/quick_start_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Pomodoro Tasks"
+            android:textSize="30sp"
+            android:textStyle="bold"
+            android:textColor="@color/dark_gray"
+            />
+            
         <TextView android:id="@+id/zero_step"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -169,6 +184,7 @@
             android:layout_centerHorizontal="true"
             android:textColor="@color/dark_gray"
             android:visibility="invisible"
+            android:layout_below="@id/quick_start_title"
             />
 
         <TextView android:id="@+id/first_step"
@@ -201,7 +217,7 @@
         <TextView android:id="@+id/fourth_step"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Step 4 - Swipe right to complete task (swipe left to undo)"
+            android:text="Step 4 - Swipe right to complete the task (swipe left to undo)"
             android:textColor="@color/dark_gray"
             android:layout_below="@id/third_step"
             android:layout_alignLeft="@id/zero_step"
