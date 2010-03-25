@@ -12,8 +12,8 @@
         android:layout_height="wrap_content"
         android:background="@drawable/run_task_panel"
         android:orientation="horizontal"
-        android:paddingTop="10sp"
-        android:paddingBottom="5px"
+        android:paddingTop="7sp"
+        android:paddingBottom="10sp"
         >
     
     <ImageButton 
