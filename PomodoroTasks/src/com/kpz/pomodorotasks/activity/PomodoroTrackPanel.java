@@ -84,7 +84,7 @@ public class PomodoroTrackPanel {
 		for (int i = 1; i <= POMODOROS_PER_ROW; i++) {
 			ImageView pomodoro = (ImageView)activity.getLayoutInflater().inflate(R.layout.pomodoro_icon, null);
 			if (i % 4 == 0){
-				pomodoro.setImageResource(R.drawable.launcher_2);
+				pomodoro.setImageResource(R.drawable.liltomato_dark);
 			}
 
 			currentTableRow.addView(pomodoro);
