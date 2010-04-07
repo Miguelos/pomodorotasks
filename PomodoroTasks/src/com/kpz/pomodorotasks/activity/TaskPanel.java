@@ -1,13 +1,15 @@
 package com.kpz.pomodorotasks.activity;
 
 import android.app.Activity;
+import android.app.AlarmManager;
 import android.app.AlertDialog;
+import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.os.CountDownTimer;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -35,12 +37,22 @@ public class TaskPanel {
 	private TextView taskDescription;
 	private TextView timeLeft;
 	private ProgressBar progressBar;
+	private PomodoroTrackPanel pomodoroTrackPanel;
+	
 	private TaskDatabaseMap taskDatabaseMap;
-	private NotifyingService mBoundService;
+	private NotifyingService notifyingService;
 	private TaskTimer counter;
 	private ServiceConnection connection;
 	private Activity activity;
+
 	private boolean isUserTask = false;
+	private long taskEndTime;
+	
+	private TASK_RUN_STATE currentTaskRunState = TASK_RUN_STATE.NOT_STARTED;
+	private enum TASK_RUN_STATE {
+		
+		NOT_STARTED, RUNNING, PAUSED
+	}
 	
 	private enum BUTTON_STATE {
 		PLAY, STOP
@@ -63,6 +75,10 @@ public class TaskPanel {
     	taskDatabaseMap = pTaskDatabaseMap;
     	activity = pActivity;
     	pomodoroTrackPanel = trackPanel;
+
+	    alarmService = (AlarmManager)activity.getSystemService(Context.ALARM_SERVICE);
+	    activityIntent = new Intent("com.kpz.pomodorotasks.alert.ALARM_ALERT");
+	    pendingAlarmIntent = PendingIntent.getBroadcast(activity, 0, activityIntent,0);
 	}
 
 	public void startTask(String taskDescription) {
@@ -129,15 +145,19 @@ public class TaskPanel {
 	}
 	
 	private void resetTaskRun() {
+		currentTaskRunState = TASK_RUN_STATE.NOT_STARTED;
+		stopAlarm();
+		cancelTaskTimer();
+		resetProgressControl();
+		if(notifyingService != null){
+			notifyingService.clearTaskNotification();			
+		}
+	}
+
+	private void cancelTaskTimer() {
 		if (counter != null){
     		counter.cancel();
     	}
-		
-		resetProgressControl();
-		
-		if(mBoundService != null){
-			mBoundService.clearTaskNotification();			
-		}
 	}
 	
 	private void resetProgressControl() {
@@ -165,7 +185,7 @@ public class TaskPanel {
 	}
 	
 	private boolean isTaskRunning() {
-		return progressBar.getProgress() != 0;
+		return currentTaskRunState.equals(TASK_RUN_STATE.RUNNING);
 	}
 	
 	private void beginUserTask(){
@@ -185,12 +205,13 @@ public class TaskPanel {
 	
 		taskDescription.setText(taskDesc);
 		int totalTimeInSec = totalTimeInMin * 60;
-//		int totalTimeInSec = 3; 
+//		int totalTimeInSec = 10; 
 		progressBar.setMax(totalTimeInSec);
 		progressBar.getLayoutParams().height = 3;
-		counter = new TaskTimer(totalTimeInSec * ONE_SEC_IN_MILLI_SEC);
-		//counter = new ProgressThread(handler);
-		counter.start();
+		long totalTimeInMillis = totalTimeInSec * ONE_SEC_IN_MILLI_SEC;
+		taskEndTime = System.currentTimeMillis() + totalTimeInMillis;
+		startTaskTimer();
+		startAlarm(taskEndTime);
 		
 		hideButton.setVisibility(View.GONE);
 		taskControlButton.setImageResource(R.drawable.stop);
@@ -204,8 +225,8 @@ public class TaskPanel {
 	            // interact with the service.  Because we have bound to a explicit
 	            // service that we know is running in our own process, we can
 	            // cast its IBinder to a concrete class and directly access it.
-	            mBoundService = ((NotifyingService.LocalBinder)service).getService();
-	            mBoundService.notifyTimeStarted(taskDesc);
+	            notifyingService = ((NotifyingService.LocalBinder)service).getService();
+	            notifyingService.notifyTimeStarted(taskDesc);
 	        }
 
 	        public void onServiceDisconnected(ComponentName className) {
@@ -213,7 +234,7 @@ public class TaskPanel {
 	            // unexpectedly disconnected -- that is, its process crashed.
 	            // Because it is running in our same process, we should never
 	            // see this happen.
-	            mBoundService = null;
+	            notifyingService = null;
 	        }
 	    };
 		
@@ -224,101 +245,139 @@ public class TaskPanel {
 		
 	}
 
-    public class TaskTimer extends CountDownTimer{
-	    
-		public TaskTimer(long millisInFuture) {
-	    	super(millisInFuture, ONE_SEC_IN_MILLI_SEC);
-		}
+	private void startAlarm(long taskEndTime) {
 
-		@Override
-	    public void onTick(long millisUntilFinished) {
-	    	
-	    	incrementProgress(millisUntilFinished);
-	    }
-		
-		private void incrementProgress(long millisUntilFinished) {
+	    alarmService.set(AlarmManager.RTC_WAKEUP, taskEndTime, pendingAlarmIntent);
+	}
+
+	public void stopAlarm() {
+
+		alarmService.cancel(pendingAlarmIntent);
+	}
+	
+	public void pause() {
+
+		if (isTaskRunning()){
+			cancelTaskTimer();
+			currentTaskRunState = TASK_RUN_STATE.PAUSED;
+		}
+	}
+
+	public void resume() {
+
+		if (currentTaskRunState.equals(TASK_RUN_STATE.PAUSED)){
 			
-			final DateFormat dateFormat = new SimpleDateFormat("mm:ss");
-			String timeStr = dateFormat.format(new Date(millisUntilFinished));
+			startTaskTimer();
+		}
+	}
+
+	private void startTaskTimer() {
+		
+		counter = new TaskTimer(taskEndTime, beepHandler);
+		counter.start();
+		currentTaskRunState = TASK_RUN_STATE.RUNNING;
+	}
+
+    private Handler beepHandler = new Handler() {
+    	
+        public void handleMessage(Message msg) {
+
+    		String taskStatus = msg.getData().getString("TASK_STATUS");
+    		if (taskStatus.equals("Running")){
+    			
+    			notifyTaskRunning(msg.getData());
+    			
+    		} else {
+
+    			notifyTaskEnd();
+    		}
+        }
+
+		private void notifyTaskRunning(Bundle data) {
+
+    		long millisUntilFinished = data.getLong("TIME_LEFT_IN_MILLIS");
+    		final DateFormat dateFormat = new SimpleDateFormat("mm:ss");
+    		String timeStr = dateFormat.format(new Date(millisUntilFinished));
             timeLeft.setText(timeStr);
            	progressBar.setProgress(new Long(millisUntilFinished / ONE_SEC_IN_MILLI_SEC).intValue());
 		}
 
-		private void beep() {
-			Message msg = beepHandler.obtainMessage();
-			beepHandler.sendMessage(msg);
-		}
-		
-		@Override
-		public void onFinish() {
-			beep();
-		}
-    }
-
-    final Handler beepHandler = new Handler() {
-        public void handleMessage(Message msg) {
-
-        	mBoundService.notifyTimeEnded();
-	        
+		private void notifyTaskEnd() {
+			
+			currentTaskRunState = TASK_RUN_STATE.NOT_STARTED;
+			
         	timeLeft.setText("00:00");
 	    	resetProgressControl();
 	    	
 	    	if(isUserTask){
 	    		
-	    		pomodoroTrackPanel.addPomodoro();
-	    		
-	    		int count = pomodoroTrackPanel.getCurrentPomodoroCount();
-	    		int _breakTime = BREAK_TIME_IN_MIN;
-	    		if (count % 4 == 0){
-	    			
-					_breakTime = EVERY_FOUR_BREAK_TIME_IN_MIN;
-	    		}
-	    		final int breakTime = _breakTime;
-	    		
-	        	final String[] items = {"Take " + breakTime + " min break", "Skip break"};
-	    		AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-	    		builder.setItems(items, new DialogInterface.OnClickListener() {
-	    		    public void onClick(DialogInterface dialog, int item) {
-	    		        
-	    		    	//Toast.makeText(getApplicationContext(), items[item], Toast.LENGTH_SHORT).show();
-	    		    	switch (item) {
-	    				case 0:
-	    					beginBreakTask(breakTime);
-	    					break;
-
-	    				case 1:
-	    					if(mBoundService != null){
-	    		    			mBoundService.clearTaskNotification();
-	    		    		}
-	    					hidePanel();
-	    			        break;
-	    			        
-	    				default:
-	    					break;
-	    				}
-	    		        
-	    		    }
-	    		});
-	    		AlertDialog alert = builder.create();
-	    		alert.show();
+	    		notifyUserTaskEnd();
 	    		
 	    	} else {
 	    		
-	    		AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-	    		builder.setMessage("         Break Complete         ")
-	    		       .setCancelable(false)
-	    		       .setNeutralButton("OK", new DialogInterface.OnClickListener() {
-	    		           public void onClick(DialogInterface dialog, int id) {
-	    		        	   if(mBoundService != null){
-		    		    			mBoundService.clearTaskNotification();
-		    		    		}    
-	    		        	   hidePanel();
-	    		           }
-	    		       });
-	    		AlertDialog alert = builder.create();
-	    		alert.show();
+	    		notifyBreakTaskEnd();
 	    	}
-        }
+
+	    	notifyingService.notifyTimeEnded();
+	    	AlarmAlertWakeLock.release();
+		}
+
+		private void notifyUserTaskEnd() {
+			pomodoroTrackPanel.addPomodoro();
+			
+			int count = pomodoroTrackPanel.getCurrentPomodoroCount();
+			int _breakTime = BREAK_TIME_IN_MIN;
+			if (count % 4 == 0){
+				
+				_breakTime = EVERY_FOUR_BREAK_TIME_IN_MIN;
+			}
+			final int breakTime = _breakTime;
+			
+			final String[] items = {"Take " + breakTime + " min break", "Skip break"};
+			AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+			builder.setItems(items, new DialogInterface.OnClickListener() {
+			    public void onClick(DialogInterface dialog, int item) {
+			        
+			    	//Toast.makeText(getApplicationContext(), items[item], Toast.LENGTH_SHORT).show();
+			    	switch (item) {
+					case 0:
+						beginBreakTask(breakTime);
+						break;
+
+					case 1:
+						if(notifyingService != null){
+			    			notifyingService.clearTaskNotification();
+			    		}
+						hidePanel();
+				        break;
+				        
+					default:
+						break;
+					}
+			        
+			    }
+			});
+			AlertDialog alert = builder.create();
+			alert.show();
+		}
+		
+		private void notifyBreakTaskEnd() {
+			AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+			builder.setMessage("         Break Complete         ")
+			       .setCancelable(false)
+			       .setNeutralButton("OK", new DialogInterface.OnClickListener() {
+			           public void onClick(DialogInterface dialog, int id) {
+			        	   if(notifyingService != null){
+				    			notifyingService.clearTaskNotification();
+				    		}    
+			        	   hidePanel();
+			           }
+			       });
+			AlertDialog alert = builder.create();
+			alert.show();
+		}
     };
-	private PomodoroTrackPanel pomodoroTrackPanel;
+	private AlarmManager alarmService;
+	private Intent activityIntent;
+	private PendingIntent pendingAlarmIntent;
 }

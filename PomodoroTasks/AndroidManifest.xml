@@ -19,8 +19,16 @@
         </activity>
         <activity android:name=".TaskEditActivity" android:label="@string/app_name" android:theme="@style/CustomTheme"/>
         <activity android:name=".SettingsActivity" android:label="@string/app_name" android:theme="@style/CustomTheme"/>
+        
+        <receiver android:name=".AlarmAlertReceiver">
+            <intent-filter>
+                <action android:name="com.kpz.pomodorotasks.alert.ALARM_ALERT" />
+            </intent-filter>
+        </receiver>
+        
     </application>
     
     <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-sdk android:minSdkVersion="3"/>
 </manifest> 
