@@ -63,6 +63,7 @@ public class TaskBrowserActivity extends ListActivity {
     @Override
     protected void onDestroy() {
 
+    	super.onDestroy();
     	if (connection != null){
     		unbindService(connection);    		
     	}
@@ -70,7 +71,20 @@ public class TaskBrowserActivity extends ListActivity {
     	stopService(new Intent(TaskBrowserActivity.this, 
                 NotifyingService.class));
     	
-    	super.onDestroy();
+    	taskPanel.stopAlarm();
+    	AlarmAlertWakeLock.release();
+    }
+    
+    @Override
+    protected void onStop() {
+    	super.onStop();
+    	taskPanel.pause();
+    }
+    
+    @Override
+    protected void onRestart() {
+    	super.onRestart();
+    	taskPanel.resume();
     }
     
 	private void initView() {
@@ -126,7 +140,6 @@ public class TaskBrowserActivity extends ListActivity {
 	
 	private void initTasksList() {
 		
-		rootLayout = (LinearLayout)findViewById(R.id.screen);
 		initTasksListViewContainer();
         populateTasksList();
 	}
@@ -473,8 +486,6 @@ public class TaskBrowserActivity extends ListActivity {
         	taskDatabaseMap.move(fromSeq, toRowId, toSeq);
 		}
     };
-
-	private LinearLayout rootLayout;
 
 	private MenuItem addTaskMenuItem;
 
