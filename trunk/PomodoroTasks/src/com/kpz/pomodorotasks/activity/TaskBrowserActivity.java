@@ -36,10 +36,10 @@ public class TaskBrowserActivity extends ListActivity {
 	
 	private static final int MAIN_MENU_DELETE_ALL_ID = Menu.FIRST;
 	private static final int MAIN_MENU_DELETED_COMPLETED_ID = MAIN_MENU_DELETE_ALL_ID + 1;
-	private static final int MAIN_MENU_OPTIONS_ID = MAIN_MENU_DELETE_ALL_ID + 2;
+	private static final int MAIN_MENU_PREFERENCES_ID = MAIN_MENU_DELETE_ALL_ID + 2;
 	private static final int MAIN_MENU_QUIT_ID = MAIN_MENU_DELETE_ALL_ID + 3;
 	private static final int MAIN_MENU_ADD_TASK_ID = MAIN_MENU_DELETE_ALL_ID + 4;
-
+	
 	private PomodoroTrackPanel trackPanel;
 	private TaskPanel taskPanel;
 	private ListView taskList;
@@ -295,7 +295,7 @@ public class TaskBrowserActivity extends ListActivity {
         menuItem = menu.add(0, MAIN_MENU_DELETE_ALL_ID, 0, R.string.menu_delete_all);
         menuItem.setIcon(drawable.ic_menu_delete);
         
-        menuItem = menu.add(0, MAIN_MENU_OPTIONS_ID, 0, R.string.menu_options);
+        menuItem = menu.add(0, MAIN_MENU_PREFERENCES_ID, 0, "Options");
         menuItem.setIcon(drawable.ic_menu_preferences);
         
         menuItem = menu.add(0, MAIN_MENU_QUIT_ID, 0, R.string.menu_quit);
@@ -363,11 +363,11 @@ public class TaskBrowserActivity extends ListActivity {
     		
 	        return true;
         	
-        case MAIN_MENU_OPTIONS_ID:
-        	Intent i = new Intent(this, SettingsActivity.class);
+        case MAIN_MENU_PREFERENCES_ID:
+        	Intent i = new Intent(this, PreferencesActivity.class);
 	        startActivityForResult(i, ACTIVITY_SET_OPTIONS);
-        	return true;        	
-        
+        	return true;  
+        	
         case MAIN_MENU_QUIT_ID:
         	finish();
         	return true;    

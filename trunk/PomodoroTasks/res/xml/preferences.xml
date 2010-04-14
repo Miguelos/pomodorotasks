@@ -1,0 +1,46 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory 
+        android:title = "Task Settings"
+        >
+        
+      <com.kpz.pomodorotasks.activity.TaskDurationPreference android:key="TASK_DURATION"
+          android:title="Task Duration"
+          android:summary="Set duration of the tasks"
+          android:dialogTitle="Task Duration"
+          />  
+
+      <com.kpz.pomodorotasks.activity.TaskDurationPreference android:key="BREAK_DURATION"
+          android:title="Break Duration"
+          android:summary="Set duration of the break"
+          android:dialogTitle="Break Duration"
+          />  
+
+      <com.kpz.pomodorotasks.activity.TaskDurationPreference android:key="EVERY_FOURTH_BREAK_DURATION"
+          android:title="Every Fourth Break Duration"
+          android:summary="Set duration of the break after every fourth Pomodoro"
+          android:dialogTitle="Every Fourth Break Duration"
+          />  
+
+    </PreferenceCategory>
+
+    <PreferenceCategory 
+        android:title = "Notification Settings"
+        >
+
+      <CheckBoxPreference android:key="PHONE_VIBRATE_FLAG"
+        android:title="Vibrate"
+        android:defaultValue="true"
+        android:persistent="true"
+        />
+
+      <RingtonePreference android:key="RINGTONE"
+        android:ringtoneType="notification"
+        android:showDefault="true"
+        android:showSilent="true"
+        android:title="Ringtone"
+      />
+
+    </PreferenceCategory>        
+
+</PreferenceScreen>

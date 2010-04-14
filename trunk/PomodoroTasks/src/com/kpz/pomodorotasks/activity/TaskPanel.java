@@ -20,6 +20,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.kpz.pomodorotasks.map.TaskDatabaseMap;
+import com.kpz.pomodorotasks.map.TaskDatabaseMap.ConfigType;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -28,8 +29,6 @@ import java.util.Date;
 public class TaskPanel {
 	
 	private static final int ONE_SEC_IN_MILLI_SEC = 1000;
-	private static final int BREAK_TIME_IN_MIN = 5;
-	private static final int EVERY_FOUR_BREAK_TIME_IN_MIN = 15;
 
 	private LinearLayout runTaskPanel;
 	private ImageButton taskControlButton;
@@ -171,7 +170,7 @@ public class TaskPanel {
 	public void resetTimeLeftIfTaskNotRunning() {
 		
 		if (isPanelVisible() && !isTaskRunning()){
-			int minutes = taskDatabaseMap.fetchTaskDurationSetting();
+			int minutes = taskDatabaseMap.getPreferences().getDurationPreference(ConfigType.TASK_DURATION);
 			String minutesString = "" + minutes;
 			if (minutes < 10){
 				minutesString = "0" + minutesString;
@@ -190,7 +189,7 @@ public class TaskPanel {
 	
 	private void beginUserTask(){
 		
-		int totalTimeInMin = taskDatabaseMap.fetchTaskDurationSetting();
+		int totalTimeInMin = taskDatabaseMap.getPreferences().getDurationPreference(ConfigType.TASK_DURATION);
 		isUserTask = true;
 		beginTask(taskDescription.getText().toString(), totalTimeInMin);
 	}
@@ -211,7 +210,7 @@ public class TaskPanel {
 		long totalTimeInMillis = totalTimeInSec * ONE_SEC_IN_MILLI_SEC;
 		taskEndTime = System.currentTimeMillis() + totalTimeInMillis;
 		startTaskTimer();
-		startAlarm(taskEndTime);
+		startAlarm();
 		
 		hideButton.setVisibility(View.GONE);
 		taskControlButton.setImageResource(R.drawable.stop);
@@ -245,7 +244,7 @@ public class TaskPanel {
 		
 	}
 
-	private void startAlarm(long taskEndTime) {
+	private void startAlarm() {
 
 	    alarmService.set(AlarmManager.RTC_WAKEUP, taskEndTime, pendingAlarmIntent);
 	}
@@ -326,10 +325,10 @@ public class TaskPanel {
 			pomodoroTrackPanel.addPomodoro();
 			
 			int count = pomodoroTrackPanel.getCurrentPomodoroCount();
-			int _breakTime = BREAK_TIME_IN_MIN;
+			int _breakTime = taskDatabaseMap.getPreferences().getDurationPreference(ConfigType.BREAK_DURATION);
 			if (count % 4 == 0){
 				
-				_breakTime = EVERY_FOUR_BREAK_TIME_IN_MIN;
+				_breakTime = taskDatabaseMap.getPreferences().getDurationPreference(ConfigType.EVERY_FOURTH_BREAK_DURATION);;
 			}
 			final int breakTime = _breakTime;
 			

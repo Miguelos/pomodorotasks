@@ -9,6 +9,8 @@ import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
 
+import com.kpz.pomodorotasks.map.TaskDatabaseMap;
+
 public class NotifyingService extends Service {
     private static final String TASK_HEADER = "Task - ";
 	private static final int NOTIFICATION_ID = R.layout.task_list;
@@ -28,7 +30,7 @@ public class NotifyingService extends Service {
     @Override
     public void onCreate() {
         notificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
-
+        taskDatabaseMap = new TaskDatabaseMap(this);
     }
     
 // Version 1.5 and below   
@@ -60,6 +62,7 @@ public class NotifyingService extends Service {
     // RemoteService for a more complete example.
     private final IBinder mBinder = new LocalBinder();
 	private String mTaskDescription;
+	private TaskDatabaseMap taskDatabaseMap;
 
 	private void showNotification(String title, String note, boolean beep) {
 
@@ -70,8 +73,12 @@ public class NotifyingService extends Service {
         if(beep){
         	String packageName = getApplication().getPackageName();
 			notification.sound = Uri.parse("android.resource://"+ packageName + "/" + R.raw.freesoundprojectdotorg_32568__erh__indian_brass_pestle);
-        	notification.vibrate = new long[] {0,100,200,300};
-            notification.defaults |= Notification.DEFAULT_LIGHTS;
+			
+			if (taskDatabaseMap.getPreferences().notifyPhoneVibrate()){
+				notification.vibrate = new long[] {0,100,200,300};				
+			}
+            
+        	notification.defaults |= Notification.DEFAULT_LIGHTS;
         }
         
         // The PendingIntent to launch our activity if the user selects this notification
