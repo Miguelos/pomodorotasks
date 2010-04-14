@@ -2,10 +2,13 @@ package com.kpz.pomodorotasks.map;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 public class TaskDatabaseMap {
@@ -24,7 +27,6 @@ public class TaskDatabaseMap {
 	public static final String KEY_STATUS = "status";
 	public static final String[] SELECTION_KEYS = { KEY_ROWID, KEY_DESCRIPTION, KEY_SEQUENCE, KEY_STATUS };
 	
-	private static final String CONFIG_TABLE = "config";
 	public static final String KEY_CONFIG_NAME = "name";	
 	public static final String KEY_CONFIG_VALUE = "value";	
 
@@ -51,10 +53,13 @@ public class TaskDatabaseMap {
 		}
 	};
 	
-	enum ConfigType {
+	public enum ConfigType {
 
-		TIME_DURATION("25"),
-		CURRENT_POMODOROS("0");
+		TASK_DURATION("25"),
+		BREAK_DURATION("5"),
+		EVERY_FOURTH_BREAK_DURATION("15"),
+		CURRENT_POMODOROS("0"),
+		PHONE_VIBRATE_FLAG("TRUE");
 
 		private String defaultValue;
 
@@ -70,18 +75,12 @@ public class TaskDatabaseMap {
 	private static final String [] DATABASE_CREATE_LIST = 
 					{"create table " + TASKS_TABLE 
 									+ " (_id integer primary key autoincrement" + ", sequence integer" + ", status text not null default Open" + ", description text not null);" 
-				     , "create table " + CONFIG_TABLE 
-				  					+ " (_id integer primary key autoincrement" + ", name text" + ", value text not null);"
-				     , "insert into " + CONFIG_TABLE 
-				  					+ " (name, value) VALUES ('" + ConfigType.TIME_DURATION + "', '" + ConfigType.TIME_DURATION.defaultValue + "');"
-  					 , "insert into " + CONFIG_TABLE 
-				  					+ " (name, value) VALUES ('" + ConfigType.CURRENT_POMODOROS + "', '" + ConfigType.CURRENT_POMODOROS.defaultValue + "');"				
-					
 					};
 
 	private static final int DATABASE_VERSION = 4;
 
 	private final Context mCtx;
+	private PreferenceMap preferenceMap;
 
 	private static class DatabaseHelper extends SQLiteOpenHelper {
 
@@ -102,7 +101,6 @@ public class TaskDatabaseMap {
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 			Log.w(TAG, "Upgrading database from version " + oldVersion + " to " + newVersion + ", which will destroy all old data");
 			db.execSQL("DROP TABLE IF EXISTS " + TASKS_TABLE);
-			db.execSQL("DROP TABLE IF EXISTS " + CONFIG_TABLE);
 			onCreate(db);
 		}
 	}
@@ -116,6 +114,7 @@ public class TaskDatabaseMap {
 	 */
 	public TaskDatabaseMap(Context ctx) {
 		this.mCtx = ctx;
+		preferenceMap = new PreferenceMap(PreferenceManager.getDefaultSharedPreferences(mCtx));
 	}
 
 	/**
@@ -136,6 +135,11 @@ public class TaskDatabaseMap {
 
 	public void close() {
 		mDbHelper.close();
+	}
+	
+	public PreferenceMap getPreferences(){
+		
+		return preferenceMap;
 	}
 
 	public long createTask(String description) {
@@ -254,40 +258,51 @@ public class TaskDatabaseMap {
 		}
 	}
 
-	public int fetchTaskDurationSetting() {
+	public class PreferenceMap {
 		
-		return fetchConfigValueInInteger(ConfigType.TIME_DURATION);
-	}
-	
-	public boolean updateTaskDurationSetting(int progress) {
+		private SharedPreferences applicationPreferences;
 
-		return updateConfigValue(ConfigType.TIME_DURATION, Integer.toString(progress));
-	}
-	
-	public int fetchCurrentPomodoros() {
-		
-		return fetchConfigValueInInteger(ConfigType.CURRENT_POMODOROS);
-	}
-
-	public boolean updateCurrentPomodoros(int count) {
-
-		return updateConfigValue(ConfigType.CURRENT_POMODOROS, Integer.toString(count));
-	}
-
-	private int fetchConfigValueInInteger(ConfigType configType) {
-		Cursor cursor = mDb.query(true, CONFIG_TABLE, new String[] {KEY_CONFIG_VALUE}, KEY_CONFIG_NAME + "= '" +  configType.name() + "'", null, null, null, null, null);
-
-		if (cursor != null) {
-			cursor.moveToFirst();
+		public PreferenceMap(SharedPreferences sharedPreferences) {
+			this.applicationPreferences = sharedPreferences;
 		}
 
-		return Integer.parseInt(cursor.getString(cursor.getColumnIndex(KEY_CONFIG_VALUE)));
-	}
-	
-	private boolean updateConfigValue(ConfigType configType, String progress) {
-		ContentValues args = new ContentValues();
-		args.put(KEY_CONFIG_VALUE, progress);
+		public int getDurationPreference(ConfigType configType) {
+			
+			return fetchValueInInteger(configType);
+		}
+		
+		public boolean updateDurationPreference(ConfigType configType, int duration) {
 
-		return mDb.update(CONFIG_TABLE, args, KEY_CONFIG_NAME + "= '" + configType.name() + "'", null) > 0;
+			return updateValue(configType, Integer.toString(duration));
+		}
+		
+		public int getCurrentPomodoros() {
+			
+			return fetchValueInInteger(ConfigType.CURRENT_POMODOROS);
+		}
+
+		public boolean updateCurrentPomodoros(int count) {
+
+			return updateValue(ConfigType.CURRENT_POMODOROS, Integer.toString(count));
+		}		
+
+		public boolean notifyPhoneVibrate() {
+			return fetchValueInBoolean(ConfigType.PHONE_VIBRATE_FLAG);
+		}
+		
+		private int fetchValueInInteger(ConfigType configType) {
+			return new Integer(applicationPreferences.getString(configType.name(), configType.defaultValue)).intValue();
+		}
+		
+		private boolean fetchValueInBoolean(ConfigType configType) {
+			return applicationPreferences.getBoolean(configType.name(), new Boolean(configType.defaultValue));
+		}
+
+		private boolean updateValue(ConfigType configType, String value) {
+
+			Editor editor = applicationPreferences.edit();
+			editor.putString(configType.name(), value);
+			return editor.commit(); 
+		}
 	}
 }

@@ -43,7 +43,7 @@ public class PomodoroTrackPanel {
 	    		       .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
 	    		           public void onClick(DialogInterface dialog, int id) {
 
-	    		        	   taskDatabaseMap.updateCurrentPomodoros(0);
+	    		        	   taskDatabaseMap.getPreferences().updateCurrentPomodoros(0);
 	    		        	   resetTrackPanel();
 	    		           }
 	    		       })
@@ -60,7 +60,7 @@ public class PomodoroTrackPanel {
 	
 	private void initPomodoros() {
 		
-		count = taskDatabaseMap.fetchCurrentPomodoros();
+		count = taskDatabaseMap.getPreferences().getCurrentPomodoros();
 		for (int i = 1; i <= count; i++) {
 			addPomodoroToView(i);
 		}
@@ -69,7 +69,7 @@ public class PomodoroTrackPanel {
 	public void addPomodoro() {
 		count++;
 		addPomodoroToView(count);
-		taskDatabaseMap.updateCurrentPomodoros(count);
+		taskDatabaseMap.getPreferences().updateCurrentPomodoros(count);
 	}
 
 	private void resetTrackPanel() {
