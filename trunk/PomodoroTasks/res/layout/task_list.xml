@@ -19,7 +19,7 @@
     <ImageButton 
                android:layout_width="wrap_content" 
                android:layout_height="wrap_content"
-               android:src="@drawable/presence_busy_small"
+               android:src="@drawable/clear"
                android:background="@drawable/run_task_panel"
                android:paddingLeft="5sp"
                android:minWidth="40sp"
@@ -45,7 +45,7 @@
         android:id="@+id/pomodoro_clear"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/presence_busy_small"
+        android:src="@drawable/clear"
         android:background="@drawable/run_task_panel"
         android:paddingRight="5sp"
         android:minWidth="40sp"
@@ -123,9 +123,11 @@
                android:layout_width="wrap_content" 
                android:layout_height="wrap_content"
                android:layout_alignParentRight="true"
-               android:src="@android:drawable/stat_sys_upload"
+               android:src="@drawable/close"
                android:background="@android:color/transparent"
-               android:paddingRight="10sp"
+               android:minWidth="40sp"
+               android:paddingRight="5sp"
+               android:paddingBottom="5sp"
                />
                
         </RelativeLayout>
