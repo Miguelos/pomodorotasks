@@ -22,7 +22,6 @@ public class PreferencesActivity extends PreferenceActivity{
 		super.onCreate(savedInstanceState);
 		
         taskDatabaseMap = new TaskDatabaseMap(this);
-    	taskDatabaseMap.open();
 		
 		addPreferencesFromResource(R.xml.preferences);
 		

@@ -4,18 +4,30 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Binder;
+import android.os.Handler;
 import android.os.IBinder;
-import android.util.Log;
 
 import com.kpz.pomodorotasks.map.TaskDatabaseMap;
 
 public class NotifyingService extends Service {
+	
     private static final String TASK_HEADER = "Task - ";
 	private static final int NOTIFICATION_ID = R.layout.task_list;
 	private NotificationManager notificationManager;
+
+    // This is the object that receives interactions from clients.  See
+    // RemoteService for a more complete example.
+    private final IBinder mBinder = new LocalBinder();
+	private String taskDescription;
+	private TaskDatabaseMap taskDatabaseMap;
+	private BroadcastReceiver broadcastReceiver;
+	private boolean isNotifiedTimeEnded;
 
     /**
      * Class for clients to access.  Because we know this service always
@@ -32,6 +44,19 @@ public class NotifyingService extends Service {
     public void onCreate() {
         notificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
         taskDatabaseMap = new TaskDatabaseMap(this);
+        
+        broadcastReceiver = new BroadcastReceiver() {
+			
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				
+				AlarmAlertWakeLock.acquire(context);
+				notifyTimeEnded();
+				AlarmAlertWakeLock.release();
+			}
+		};
+        IntentFilter filter = new IntentFilter("com.kpz.pomodorotasks.alert.ALARM_ALERT");
+		registerReceiver(broadcastReceiver, filter);
     }
     
 // Version 1.5 and below   
@@ -52,18 +77,13 @@ public class NotifyingService extends Service {
     public void onDestroy() {
     	
         notificationManager.cancel(NOTIFICATION_ID);
+        unregisterReceiver(broadcastReceiver);
     }
 
     @Override
     public IBinder onBind(Intent intent) {
         return mBinder;
     }
-
-    // This is the object that receives interactions from clients.  See
-    // RemoteService for a more complete example.
-    private final IBinder mBinder = new LocalBinder();
-	private String mTaskDescription;
-	private TaskDatabaseMap taskDatabaseMap;
 
 	private void showNotification(String title, String note, boolean beep) {
 
@@ -73,7 +93,6 @@ public class NotifyingService extends Service {
         
         if(beep){
         	String ringtone = taskDatabaseMap.getPreferences().getRingtone();
-        	Log.d("pom", "In notifying service.. selected ringtone:" + ringtone);
         	if(ringtone == null){
 				ringtone = "android.resource://"+ getApplication().getPackageName() + "/" + R.raw.freesoundprojectdotorg_32568__erh__indian_brass_pestle;
 			}
@@ -84,34 +103,38 @@ public class NotifyingService extends Service {
 				notification.vibrate = new long[] {0,100,200,300};				
 			}
             
+			notification.tickerText = title;
         	notification.defaults |= Notification.DEFAULT_LIGHTS;
         }
         
-        // The PendingIntent to launch our activity if the user selects this notification
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
                 new Intent(this, TaskBrowserActivity.class), 0);
-
-        // Set the info for the views that show in the notification panel.
         notification.setLatestEventInfo(this, title, note, contentIntent);
-
-        // Send the notification.
-        // We use a layout id because it is a unique number.  We use it later to cancel.
         notificationManager.notify(NOTIFICATION_ID, notification);
-		
 	}
 	
 	public void notifyTimeEnded() {
-		showNotification("Time's up", TASK_HEADER + mTaskDescription, true);
+		
+		new Handler().post(new Runnable() {
+			
+			public void run() {
+				
+				if(!isNotifiedTimeEnded){
+					isNotifiedTimeEnded = true;
+					showNotification("Time's up", TASK_HEADER + taskDescription, true);					
+				}
+			}
+		});
 	}
 
-	public void notifyTimeStarted(String taskDescription) {
-
-		mTaskDescription = taskDescription;
-		showNotification("Clock is ticking...", TASK_HEADER + mTaskDescription, false);
+	public void notifyTimeStarted(String pTaskDescription) {
+		
+		isNotifiedTimeEnded = false;
+		taskDescription = pTaskDescription;
+		showNotification("Clock is ticking...", TASK_HEADER + taskDescription, false);
 	}
 
 	public void clearTaskNotification() {
 		showNotification(getText(R.string.app_name).toString(), "", false);
 	}
 }
-

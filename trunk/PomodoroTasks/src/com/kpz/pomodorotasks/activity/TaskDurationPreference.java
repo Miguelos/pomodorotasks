@@ -25,7 +25,6 @@ public class TaskDurationPreference extends DialogPreference {
         setDialogLayoutResource(R.layout.task_duration_preference_dialog);
         
         taskDatabaseMap = new TaskDatabaseMap(context);
-    	taskDatabaseMap.open();
     }
     
 
