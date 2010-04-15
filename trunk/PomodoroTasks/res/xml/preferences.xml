@@ -34,11 +34,12 @@
         android:persistent="true"
         />
 
-      <RingtonePreference android:key="RINGTONE"
+      <RingtonePreference android:key="NOTIFICATION_RINGTONE"
         android:ringtoneType="notification"
         android:showDefault="true"
         android:showSilent="true"
         android:title="Ringtone"
+        android:persistent="true"
       />
 
     </PreferenceCategory>        

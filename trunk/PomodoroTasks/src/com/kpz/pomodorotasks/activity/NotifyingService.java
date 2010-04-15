@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
+import android.util.Log;
 
 import com.kpz.pomodorotasks.map.TaskDatabaseMap;
 
@@ -71,9 +72,14 @@ public class NotifyingService extends Service {
         notification.flags = Notification.FLAG_ONGOING_EVENT;
         
         if(beep){
-        	String packageName = getApplication().getPackageName();
-			notification.sound = Uri.parse("android.resource://"+ packageName + "/" + R.raw.freesoundprojectdotorg_32568__erh__indian_brass_pestle);
-			
+        	String ringtone = taskDatabaseMap.getPreferences().getRingtone();
+        	Log.d("pom", "In notifying service.. selected ringtone:" + ringtone);
+        	if(ringtone == null){
+				ringtone = "android.resource://"+ getApplication().getPackageName() + "/" + R.raw.freesoundprojectdotorg_32568__erh__indian_brass_pestle;
+			}
+        	
+        	notification.sound = Uri.parse(ringtone);
+        	
 			if (taskDatabaseMap.getPreferences().notifyPhoneVibrate()){
 				notification.vibrate = new long[] {0,100,200,300};				
 			}
