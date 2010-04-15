@@ -116,6 +116,7 @@ public class TaskDatabaseMap {
 	public TaskDatabaseMap(Context ctx) {
 		this.mCtx = ctx;
 		preferenceMap = new PreferenceMap(PreferenceManager.getDefaultSharedPreferences(mCtx));
+		open();
 	}
 
 	/**
@@ -128,7 +129,7 @@ public class TaskDatabaseMap {
 	 * @throws SQLException
 	 *             if the database could be neither opened or created
 	 */
-	public TaskDatabaseMap open() throws SQLException {
+	private TaskDatabaseMap open() throws SQLException {
 		mDbHelper = new DatabaseHelper(mCtx);
 		mDb = mDbHelper.getWritableDatabase();
 		return this;

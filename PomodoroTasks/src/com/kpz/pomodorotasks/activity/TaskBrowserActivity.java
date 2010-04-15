@@ -233,7 +233,6 @@ public class TaskBrowserActivity extends ListActivity {
 
 	private void initDatabaseHelper() {
 		taskDatabaseMap = new TaskDatabaseMap(this);
-        taskDatabaseMap.open();
 	}
 
 	private void initAddTaskPanel() {

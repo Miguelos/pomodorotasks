@@ -43,6 +43,8 @@ public class TaskPanel {
 	private TaskTimer counter;
 	private ServiceConnection connection;
 	private Activity activity;
+	private AlarmManager alarmService;
+	private PendingIntent pendingAlarmIntent;
 
 	private boolean isUserTask = false;
 	private long taskEndTime;
@@ -76,8 +78,7 @@ public class TaskPanel {
     	pomodoroTrackPanel = trackPanel;
 
 	    alarmService = (AlarmManager)activity.getSystemService(Context.ALARM_SERVICE);
-	    activityIntent = new Intent("com.kpz.pomodorotasks.alert.ALARM_ALERT");
-	    pendingAlarmIntent = PendingIntent.getBroadcast(activity, 0, activityIntent,0);
+	    pendingAlarmIntent = PendingIntent.getBroadcast(activity, 0, new Intent("com.kpz.pomodorotasks.alert.ALARM_ALERT"),0);
 	}
 
 	public void startTask(String taskDescription) {
@@ -376,7 +377,4 @@ public class TaskPanel {
 			alert.show();
 		}
     };
-	private AlarmManager alarmService;
-	private Intent activityIntent;
-	private PendingIntent pendingAlarmIntent;
 }
