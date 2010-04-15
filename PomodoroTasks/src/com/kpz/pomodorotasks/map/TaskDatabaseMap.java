@@ -59,7 +59,8 @@ public class TaskDatabaseMap {
 		BREAK_DURATION("5"),
 		EVERY_FOURTH_BREAK_DURATION("15"),
 		CURRENT_POMODOROS("0"),
-		PHONE_VIBRATE_FLAG("TRUE");
+		PHONE_VIBRATE_FLAG("TRUE"), 
+		NOTIFICATION_RINGTONE("content://settings/system/notification_sound");
 
 		private String defaultValue;
 
@@ -288,6 +289,15 @@ public class TaskDatabaseMap {
 
 		public boolean notifyPhoneVibrate() {
 			return fetchValueInBoolean(ConfigType.PHONE_VIBRATE_FLAG);
+		}
+
+		public String getRingtone() {
+
+			return applicationPreferences.getString(ConfigType.NOTIFICATION_RINGTONE.name(), ConfigType.NOTIFICATION_RINGTONE.defaultValue);
+		}
+
+		public void updateRingtone(String value) {
+			updateValue(ConfigType.NOTIFICATION_RINGTONE, value);
 		}
 		
 		private int fetchValueInInteger(ConfigType configType) {
