@@ -85,13 +85,17 @@ public class NotifyingService extends Service {
         return mBinder;
     }
 
-	private void showNotification(String title, String note, boolean beep) {
+	private void showNotification(String title, String note, boolean isTaskComplete) {
 
         Notification notification = new Notification(R.drawable.liltomato, null,
                 System.currentTimeMillis());
         notification.flags = Notification.FLAG_ONGOING_EVENT;
         
-        if(beep){
+        if(isTaskComplete){
+        	
+        	notification = new Notification(R.drawable.liltomato_red, null,
+                    System.currentTimeMillis());
+            notification.flags = Notification.FLAG_ONGOING_EVENT;
         	String ringtone = taskDatabaseMap.getPreferences().getRingtone();
         	if(ringtone == null){
 				ringtone = "android.resource://"+ getApplication().getPackageName() + "/" + R.raw.freesoundprojectdotorg_32568__erh__indian_brass_pestle;
