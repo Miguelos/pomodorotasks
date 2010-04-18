@@ -169,17 +169,17 @@
             android:background="@drawable/quick_start_help_panel"
             android:gravity="center_horizontal"            
             android:layout_centerInParent="true"
-            android:paddingLeft="5px"
-            android:paddingRight="5px"
+            android:paddingLeft="5dp"
+            android:paddingRight="5dp"
             >
 
         <TextView android:id="@+id/quick_start_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Pomodoro Tasks"
-            android:textSize="30sp"
-            android:textStyle="bold"
+            android:text="Based on the Pomodoro Technique™ by Francesco Cirillo"
+            android:textSize="15sp"
             android:textColor="@color/dark_gray"
+            android:paddingTop="10dp"
             />
             
         <TextView android:id="@+id/zero_step"
@@ -195,47 +195,47 @@
         <TextView android:id="@+id/first_step"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Step 1 - Add a task"
+            android:text="* Eliminate the anxiety of time"
             android:textColor="@color/dark_gray"
             android:layout_below="@id/zero_step"
             android:layout_alignLeft="@id/zero_step"
             />
             
-        <TextView android:id="@+id/second_step" 
+        <TextView android:id="@+id/second_step"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Step 2 - Select task to start the clock"
+            android:text="* Enhance focus and concentration"
             android:textColor="@color/dark_gray"
             android:layout_below="@id/first_step"
             android:layout_alignLeft="@id/zero_step"
-            />
+            />    
 
-        <TextView android:id="@+id/third_step"
-            android:layout_width="wrap_content"
+        <LinearLayout 
+            android:layout_width="wrap_content" 
             android:layout_height="wrap_content"
-            android:text="Step 3 - Work on the task until time is up"
-            android:textColor="@color/dark_gray"
+            android:orientation="horizontal"
             android:layout_below="@id/second_step"
-            android:layout_alignLeft="@id/zero_step"
-            />
-                                            
-        <TextView android:id="@+id/fourth_step"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Step 4 - Swipe right to complete the task (swipe left to undo)"
-            android:textColor="@color/dark_gray"
-            android:layout_below="@id/third_step"
-            android:layout_alignLeft="@id/zero_step"
-            />
-            
-        <TextView 
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text=""
-            android:textColor="@color/dark_gray"
-            android:layout_below="@id/fourth_step"
-            android:layout_alignLeft="@id/zero_step"
-            />            
+           >
+        
+	        <TextView
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:text="@string/go_to_help_part_1"
+	            android:textColor="@color/dark_gray"
+	            android:paddingTop="10sp"
+	            android:paddingBottom="10sp"
+	            />
+	                
+	        <TextView android:id="@+id/go_to_help"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:text="@string/go_to_help_part_2"
+	            android:textColor="@color/dark_gray"
+	            android:paddingTop="10sp"
+	            android:paddingBottom="10sp"
+	            />                         
+        
+        </LinearLayout>
         
     </RelativeLayout>           
     </RelativeLayout>           

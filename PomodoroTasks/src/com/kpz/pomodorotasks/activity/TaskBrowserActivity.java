@@ -12,8 +12,10 @@ import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnTouchListener;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -32,13 +34,15 @@ public class TaskBrowserActivity extends ListActivity {
 	private static final int NOTIFICATION_ID = R.layout.task_list;
 	
 	private static final int ACTIVITY_EDIT = 1;
-	private static final int ACTIVITY_SET_OPTIONS = 2;
+	private static final int ACTIVITY_SET_PREFERENCES = 2;
+	private static final int ACTIVITY_HELP = 2;
 	
 	private static final int MAIN_MENU_DELETE_ALL_ID = Menu.FIRST;
 	private static final int MAIN_MENU_DELETED_COMPLETED_ID = MAIN_MENU_DELETE_ALL_ID + 1;
 	private static final int MAIN_MENU_PREFERENCES_ID = MAIN_MENU_DELETE_ALL_ID + 2;
 	private static final int MAIN_MENU_QUIT_ID = MAIN_MENU_DELETE_ALL_ID + 3;
 	private static final int MAIN_MENU_ADD_TASK_ID = MAIN_MENU_DELETE_ALL_ID + 4;
+	private static final int MAIN_MENU_HELP_ID = MAIN_MENU_DELETE_ALL_ID + 5;
 	
 	private PomodoroTrackPanel trackPanel;
 	private TaskPanel taskPanel;
@@ -98,6 +102,21 @@ public class TaskBrowserActivity extends ListActivity {
         refreshTaskPanelForOrientation();
         initTrackPanel();
         initAndHideRunTaskPanel();   
+        initHelpLink();
+	}
+
+	private void initHelpLink() {
+		TextView goToHelpTextView = (TextView)findViewById(R.id.go_to_help);
+        goToHelpTextView.setOnTouchListener(new OnTouchListener() {
+			
+			public boolean onTouch(View v, MotionEvent event) {
+				
+	        	Intent i = new Intent(TaskBrowserActivity.this, HelpActivity.class);
+		        startActivityForResult(i, ACTIVITY_HELP);
+
+				return false;
+			}
+		});
 	}
 
 	private void initTrackPanel() {
@@ -297,6 +316,9 @@ public class TaskBrowserActivity extends ListActivity {
         menuItem = menu.add(0, MAIN_MENU_PREFERENCES_ID, 0, "Options");
         menuItem.setIcon(drawable.ic_menu_preferences);
         
+        menuItem = menu.add(0, MAIN_MENU_HELP_ID, 0, "Help");
+        menuItem.setIcon(drawable.ic_menu_help);
+        
         menuItem = menu.add(0, MAIN_MENU_QUIT_ID, 0, R.string.menu_quit);
         menuItem.setIcon(drawable.ic_lock_power_off);
         return true;
@@ -364,9 +386,14 @@ public class TaskBrowserActivity extends ListActivity {
         	
         case MAIN_MENU_PREFERENCES_ID:
         	Intent i = new Intent(this, PreferencesActivity.class);
-	        startActivityForResult(i, ACTIVITY_SET_OPTIONS);
+	        startActivityForResult(i, ACTIVITY_SET_PREFERENCES);
         	return true;  
-        	
+
+        case MAIN_MENU_HELP_ID:
+        	i = new Intent(this, HelpActivity.class);
+	        startActivityForResult(i, ACTIVITY_HELP);
+        	return true;  
+
         case MAIN_MENU_QUIT_ID:
         	finish();
         	return true;    
@@ -425,7 +452,7 @@ public class TaskBrowserActivity extends ListActivity {
         super.onActivityResult(requestCode, resultCode, intent);
         
         switch (requestCode) {
-			case ACTIVITY_SET_OPTIONS:
+			case ACTIVITY_SET_PREFERENCES:
 				
 				taskPanel.resetTimeLeftIfTaskNotRunning();
 				break;
