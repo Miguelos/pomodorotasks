@@ -29,4 +29,6 @@
     <string name="TO_PLAY_STATE">Task Control Button State</string>    
     <string name="TO_STOP_STATE">Task Control Button State</string>   
     
+    <string name="go_to_help_part_1">To learn about the technique, see</string>
+    <string name="go_to_help_part_2"> <u>Help</u></string>
 </resources>
