@@ -61,11 +61,11 @@
 	    android:layout_height="wrap_content"
 	    android:background="@drawable/run_task_panel"
 	    android:orientation="vertical"
-	    android:paddingBottom="5px">
+	    android:paddingBottom="5dp">
 
         <RelativeLayout android:layout_width="fill_parent" 
             android:layout_height="wrap_content"
-            android:paddingTop="5sp">
+            android:paddingTop="5dp">
 
            <TextView android:id="@+id/task_description" 
                android:layout_width="fill_parent"
@@ -78,7 +78,7 @@
         </RelativeLayout>
         
 	    <RelativeLayout android:layout_width="fill_parent" 
-	        android:layout_height="30px"
+	        android:layout_height="30dp"
 	        >
 	
 	       <TextView android:id="@+id/time_left" 
@@ -88,7 +88,7 @@
 	           android:layout_alignParentRight="true"
 	           android:textColor="#000000"
                android:layout_centerVertical="true"
-               android:minWidth="45px"
+               android:minWidth="45dp"
                android:gravity="center_horizontal"
 	         />
 	
@@ -99,7 +99,7 @@
 	            android:src="@android:drawable/ic_media_play"
 	            android:background="@android:color/transparent"
 	            android:layout_centerVertical="true"
-	            android:minWidth="45px"
+	            android:minWidth="45dp"
                 android:gravity="center_horizontal"
 	        />
 	        
@@ -151,7 +151,7 @@
         android:fastScrollEnabled="true" 
         android:transcriptMode="normal"
         android:divider="@drawable/list_divider"   
-        android:dividerHeight="1px"
+        android:dividerHeight="1dp"
         android:cacheColorHint="#00000000"
         /> 
     
@@ -159,8 +159,8 @@
     <RelativeLayout android:id="@+id/list_empty" 
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:paddingLeft="5px"
-            android:paddingRight="5px"
+            android:paddingLeft="5dp"
+            android:paddingRight="5dp"
             >
 
     <RelativeLayout  

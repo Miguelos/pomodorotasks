@@ -7,9 +7,9 @@ import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.preference.PreferenceManager;
-import android.util.Log;
 
 public class TaskDatabaseMap {
 
@@ -58,8 +58,9 @@ public class TaskDatabaseMap {
 		TASK_DURATION("25"),
 		BREAK_DURATION("5"),
 		EVERY_FOURTH_BREAK_DURATION("15"),
-		CURRENT_POMODOROS("0"),
+		CURRENT_POMODOROS("5"),
 		PHONE_VIBRATE_FLAG("TRUE"), 
+		LEGACY_CONFIG_UPGRADE_FLAG("FALSE"), 
 		NOTIFICATION_RINGTONE("content://settings/system/notification_sound");
 
 		private String defaultValue;
@@ -92,7 +93,6 @@ public class TaskDatabaseMap {
 		@Override
 		public void onCreate(SQLiteDatabase db) {
 
-			Log.d(TAG, "create stat: " + DATABASE_CREATE_LIST);
 			for (String sql : DATABASE_CREATE_LIST) {
 				db.execSQL(sql);
 			}
@@ -100,7 +100,6 @@ public class TaskDatabaseMap {
 
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-			Log.w(TAG, "Upgrading database from version " + oldVersion + " to " + newVersion + ", which will destroy all old data");
 			db.execSQL("DROP TABLE IF EXISTS " + TASKS_TABLE);
 			onCreate(db);
 		}
@@ -117,8 +116,38 @@ public class TaskDatabaseMap {
 		this.mCtx = ctx;
 		preferenceMap = new PreferenceMap(PreferenceManager.getDefaultSharedPreferences(mCtx));
 		open();
+		if (!getPreferences().legacyUpgradeComplete()){
+			upgradeLegacyData();			
+		}
 	}
 
+	private void upgradeLegacyData() {
+		
+		try{
+			Cursor cursor = mDb.query(true, "config", new String[] {"value"}, "name" + "= '" +  "CURRENT_POMODOROS" + "'", null, null, null, null, null);
+			if (cursor != null) {
+				cursor.moveToFirst();
+			}
+			int currentPomodoroCount = Integer.parseInt(cursor.getString(cursor.getColumnIndex("value")));
+			getPreferences().updateCurrentPomodoros(currentPomodoroCount);
+
+			cursor = mDb.query(true, "config", new String[] {"value"}, "name" + "= '" +  "TIME_DURATION" + "'", null, null, null, null, null);
+			if (cursor != null) {
+				cursor.moveToFirst();
+			}
+			int taskDuration = Integer.parseInt(cursor.getString(cursor.getColumnIndex("value")));
+			getPreferences().updateDurationPreference(ConfigType.TASK_DURATION, taskDuration);
+
+			
+		} catch (SQLiteException ex) {
+			
+			// Exception expected when its not an upgrade from previous version and the config table was not found.
+		} finally {
+			// Set one time upgrade to complete 
+			getPreferences().setLegacyUpgradeComplete(true);
+		}
+	}
+	
 	/**
 	 * Open the tasks database. If it cannot be opened, try to create a new
 	 * instance of the database. If it cannot be created, throw an exception to
@@ -268,6 +297,15 @@ public class TaskDatabaseMap {
 			this.applicationPreferences = sharedPreferences;
 		}
 
+		public boolean legacyUpgradeComplete() {
+			return fetchValueInBoolean(ConfigType.LEGACY_CONFIG_UPGRADE_FLAG);
+		}
+
+		public boolean setLegacyUpgradeComplete(boolean b) {
+			
+			return updateValueInBoolean(ConfigType.LEGACY_CONFIG_UPGRADE_FLAG, Boolean.TRUE);
+		}
+		
 		public int getDurationPreference(ConfigType configType) {
 			
 			return fetchValueInInteger(configType);
@@ -275,7 +313,7 @@ public class TaskDatabaseMap {
 		
 		public boolean updateDurationPreference(ConfigType configType, int duration) {
 
-			return updateValue(configType, Integer.toString(duration));
+			return updateValueInString(configType, Integer.toString(duration));
 		}
 		
 		public int getCurrentPomodoros() {
@@ -285,7 +323,7 @@ public class TaskDatabaseMap {
 
 		public boolean updateCurrentPomodoros(int count) {
 
-			return updateValue(ConfigType.CURRENT_POMODOROS, Integer.toString(count));
+			return updateValueInString(ConfigType.CURRENT_POMODOROS, Integer.toString(count));
 		}		
 
 		public boolean notifyPhoneVibrate() {
@@ -298,7 +336,7 @@ public class TaskDatabaseMap {
 		}
 
 		public void updateRingtone(String value) {
-			updateValue(ConfigType.NOTIFICATION_RINGTONE, value);
+			updateValueInString(ConfigType.NOTIFICATION_RINGTONE, value);
 		}
 		
 		private int fetchValueInInteger(ConfigType configType) {
@@ -309,10 +347,17 @@ public class TaskDatabaseMap {
 			return applicationPreferences.getBoolean(configType.name(), new Boolean(configType.defaultValue));
 		}
 
-		private boolean updateValue(ConfigType configType, String value) {
+		private boolean updateValueInString(ConfigType configType, String value) {
 
 			Editor editor = applicationPreferences.edit();
 			editor.putString(configType.name(), value);
+			return editor.commit(); 
+		}
+		
+		private boolean updateValueInBoolean(ConfigType configType, Boolean value) {
+
+			Editor editor = applicationPreferences.edit();
+			editor.putBoolean(configType.name(), value);
 			return editor.commit(); 
 		}
 	}
