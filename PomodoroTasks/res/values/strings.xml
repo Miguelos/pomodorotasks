@@ -18,7 +18,9 @@
     
     <!-- Do not translate. Background color for currently dragged item in playlist edit mode. -->
     <color name="dragndrop_background">#CCCCCC</color>
+    <color name="light_gray">#e2e2e2</color>
     <color name="dark_gray">#5f6464</color>
+    <color name="very_dark_gray">#646464</color>
     <color name="tomatoRed">#DF3232</color>
     <color name="tomatoSauce">#CD0808</color>
 
@@ -29,6 +31,6 @@
     <string name="TO_PLAY_STATE">Task Control Button State</string>    
     <string name="TO_STOP_STATE">Task Control Button State</string>   
     
-    <string name="go_to_help_part_1">To learn about the technique, see</string>
+    <string name="go_to_help_part_1">To get started, see</string>
     <string name="go_to_help_part_2"> <u>Help</u></string>
 </resources>
