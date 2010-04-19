@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" 
+    android:id="@+id/screen"
+    android:layout_width="fill_parent" 
+    android:layout_height="fill_parent"
+    android:orientation="vertical"
+    android:background="@drawable/list_background">
+
+    <LinearLayout  
+        android:layout_width="fill_parent" 
+        android:layout_height="wrap_content"
+        android:background="@drawable/run_task_panel"
+        android:orientation="horizontal"
+        android:paddingTop="7sp"
+        android:paddingBottom="10sp"
+        >
+    
+    <ImageButton 
+               android:layout_width="wrap_content" 
+               android:layout_height="wrap_content"
+               android:src="@drawable/clear"
+               android:background="@drawable/run_task_panel"
+               android:paddingLeft="5sp"
+               android:minWidth="40sp"
+               android:layout_gravity="center_vertical"
+               android:visibility="invisible"
+               />    
+
+    <TableLayout  
+        android:id="@+id/trackPanel"
+        android:layout_width="0dip" 
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:minHeight="25sp"
+        android:gravity="left"
+        android:background="@drawable/pomodoro_bar"
+        android:layout_gravity="center_vertical"
+        android:paddingBottom="5sp"
+        >
+
+    </TableLayout>
+
+    <ImageButton 
+        android:id="@+id/pomodoro_clear"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/clear"
+        android:background="@drawable/run_task_panel"
+        android:paddingRight="5sp"
+        android:minWidth="40sp"
+        android:layout_gravity="center_vertical"
+        android:visibility="visible"
+        />
+                   
+    </LinearLayout>
+
+    <LinearLayout  
+	    android:id="@+id/runTaskPanel"
+	    android:layout_width="fill_parent" 
+	    android:layout_height="wrap_content"
+	    android:background="@drawable/run_task_panel"
+	    android:orientation="vertical"
+	    android:paddingBottom="5dp">
+
+        <RelativeLayout android:layout_width="fill_parent" 
+            android:layout_height="wrap_content"
+            android:paddingTop="5dp">
+
+           <TextView android:id="@+id/task_description" 
+               android:layout_width="fill_parent"
+               android:layout_height="wrap_content"
+               android:textColor="#000000"
+               android:textStyle="bold"
+               android:gravity="center_horizontal"
+               android:text=""/>
+
+        </RelativeLayout>
+        
+	    <RelativeLayout android:layout_width="fill_parent" 
+	        android:layout_height="30dp"
+	        >
+	
+	       <TextView android:id="@+id/time_left" 
+	           android:layout_width="wrap_content"
+	           android:layout_height="wrap_content"
+	           android:text="@string/zeroTime"
+	           android:layout_alignParentRight="true"
+	           android:textColor="#000000"
+               android:layout_centerVertical="true"
+               android:minWidth="45dp"
+               android:gravity="center_horizontal"
+	         />
+	
+	        <ImageButton android:id="@+id/control_icon"
+	            android:layout_width="wrap_content" 
+	            android:layout_height="wrap_content"
+	            android:layout_alignParentLeft="true"            
+	            android:src="@android:drawable/ic_media_play"
+	            android:background="@android:color/transparent"
+	            android:layout_centerVertical="true"
+	            android:minWidth="45dp"
+                android:gravity="center_horizontal"
+	        />
+	        
+	        <ProgressBar android:id="@+id/task_progress_bar" 
+	           style="?android:attr/progressBarStyleHorizontal"
+	           android:progressDrawable="@drawable/task_progress_bar" 
+	           android:layout_width="fill_parent"
+	           android:layout_height="wrap_content"
+	           android:layout_toLeftOf="@id/time_left"
+	           android:layout_toRightOf="@id/control_icon"
+	           android:maxHeight="2dip"
+	           android:minHeight="2dip"
+               android:layout_centerVertical="true"
+               android:layout_centerHorizontal="true"
+               android:layout_centerInParent="true"
+	        /> 
+	        
+	    </RelativeLayout>
+	    
+        <RelativeLayout android:layout_width="fill_parent" 
+            android:layout_height="wrap_content"
+            >
+
+            <ImageButton android:id="@+id/hide_panel_button"
+               android:layout_width="wrap_content" 
+               android:layout_height="wrap_content"
+               android:layout_alignParentRight="true"
+               android:src="@drawable/close"
+               android:background="@android:color/transparent"
+               android:minWidth="40sp"
+               android:paddingRight="5sp"
+               android:paddingBottom="5sp"
+               />
+               
+        </RelativeLayout>
+    </LinearLayout>
+    
+<FrameLayout
+        android:layout_width="fill_parent" 
+        android:layout_height="0dip"
+        android:layout_weight="1" >
+    
+    <com.kpz.pomodorotasks.activity.TouchInterceptor
+        android:id="@android:id/list"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_weight="2"
+        android:drawSelectorOnTop="false"
+        android:fastScrollEnabled="true" 
+        android:transcriptMode="normal"
+        android:divider="@drawable/list_divider"   
+        android:dividerHeight="1dp"
+        android:cacheColorHint="#00000000"
+        /> 
+    
+
+    <RelativeLayout android:id="@+id/list_empty" 
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:paddingLeft="5dp"
+            android:paddingRight="5dp"
+            >
+
+    <RelativeLayout  
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/quick_start_help_panel"
+            android:gravity="center_horizontal"            
+            android:layout_centerInParent="true"
+            android:paddingLeft="5dp"
+            android:paddingRight="5dp"
+            >
+
+        <TextView android:id="@+id/quick_start_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Based on the Pomodoro Technique™ by Francesco Cirillo"
+            android:textSize="15sp"
+            android:textColor="@color/dark_gray"
+            android:paddingTop="10dp"
+            />
+            
+        <TextView android:id="@+id/zero_step"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Step 3 - Work on the task until time is up"
+            android:layout_centerHorizontal="true"
+            android:textColor="@color/dark_gray"
+            android:visibility="invisible"
+            android:layout_below="@id/quick_start_title"
+            />
+
+        <TextView android:id="@+id/first_step"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="* Eliminate the anxiety of time"
+            android:textColor="@color/dark_gray"
+            android:layout_below="@id/zero_step"
+            android:layout_alignLeft="@id/zero_step"
+            />
+            
+        <TextView android:id="@+id/second_step"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="* Enhance focus and concentration"
+            android:textColor="@color/dark_gray"
+            android:layout_below="@id/first_step"
+            android:layout_alignLeft="@id/zero_step"
+            />    
+
+        <LinearLayout 
+            android:layout_width="wrap_content" 
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_below="@id/second_step"
+           >
+        
+	        <TextView
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:text="@string/go_to_help_part_1"
+	            android:textColor="@color/dark_gray"
+	            android:paddingTop="10sp"
+	            android:paddingBottom="10sp"
+	            />
+	                
+	        <TextView android:id="@+id/go_to_help"
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content"
+	            android:text="@string/go_to_help_part_2"
+	            android:textColor="@color/dark_gray"
+	            android:paddingTop="10sp"
+	            android:paddingBottom="10sp"
+	            />                         
+        
+        </LinearLayout>
+        
+    </RelativeLayout>           
+    </RelativeLayout>           
+
+</FrameLayout>
+        
+    <LinearLayout android:id="@+id/add_task_panel"
+        android:layout_width="fill_parent" 
+        android:layout_height="wrap_content"
+        android:baselineAligned="false"
+        style="@android:style/ButtonBar">
+
+         <ImageButton android:id="@+id/hide_add_panel_button"
+             android:layout_width="wrap_content" 
+             android:layout_height="wrap_content"
+             android:src="@android:drawable/stat_sys_download"
+             android:paddingRight="10sp"
+             />
+
+        <EditText android:id="@+id/add_task_input_box"
+            android:layout_height="wrap_content"
+            android:layout_width="fill_parent"
+            android:layout_weight="1" 
+            android:maxLines="3"
+            android:maxLength="70"
+            android:text="" android:hint="New Task"/>
+    </LinearLayout>        	
+
+</LinearLayout>
