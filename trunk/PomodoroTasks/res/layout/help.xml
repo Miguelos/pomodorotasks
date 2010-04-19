@@ -14,10 +14,12 @@
             >
 
         <Button android:id="@+id/back"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="40sp"
+            android:layout_width="80sp"
             android:text="Back"
             android:layout_alignParentLeft="true"
+            android:textColor="@color/dark_gray"
+            android:layout_centerVertical="true"
         />
 
         <TextView android:id="@+id/title" 
@@ -25,6 +27,7 @@
                 android:layout_height="wrap_content" 
                 android:text="Help" 
                 android:layout_centerInParent="true"
+                android:textColor="@color/light_gray"
                 />
         
     </RelativeLayout>  
@@ -32,9 +35,9 @@
     <ScrollView
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:padding="5dp"
-            android:paddingTop="10dp"
-            android:paddingBottom="10dp"
+            android:padding="10dp"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
             >
             
     <LinearLayout
@@ -133,7 +136,16 @@
             android:paddingTop="5sp"
             android:paddingBottom="10sp"
             android:clickable="true"
-            />                         
+            />    
+            
+        <TextView 
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="To get back to this page, press the Menu button and choose Help"
+            android:textColor="@color/very_dark_gray"
+            android:padding="5sp"
+            android:background="@drawable/highlight_background"
+            />                                 
         
 	</LinearLayout>	  
 
