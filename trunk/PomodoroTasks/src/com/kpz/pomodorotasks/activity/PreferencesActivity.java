@@ -58,9 +58,15 @@ public class PreferencesActivity extends PreferenceActivity{
 			ringTonePreference.setSummary("Silent");
 			return;
 		}
-		
+
 		Uri ringtoneUri = Uri.parse(ringtoneUrl);
 		Ringtone ringtone = RingtoneManager.getRingtone(this, ringtoneUri);
-		ringTonePreference.setSummary(ringtone.getTitle(this));
+		
+		String title = null;		
+		if (ringtone != null){
+			title = ringtone.getTitle(this);			
+		}
+		
+		ringTonePreference.setSummary(title);
 	}
 }
