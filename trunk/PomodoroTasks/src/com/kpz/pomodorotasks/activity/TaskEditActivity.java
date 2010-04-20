@@ -66,7 +66,7 @@ public class TaskEditActivity extends Activity {
 	}
 
 	private void initDatabaseConnection() {
-		taskDatabaseMap = new TaskDatabaseMap(this);
+		taskDatabaseMap = TaskDatabaseMap.getInstance(this);
 	}
     
     private void populateFields() {
