@@ -77,6 +77,9 @@ public class TaskBrowserActivity extends ListActivity {
     	
     	taskPanel.stopAlarm();
     	AlarmAlertWakeLock.release();
+    	
+    	// Close database ONLY on application exit since the same active datasource instance is used by all activities and services. 
+    	taskDatabaseMap.close();
     }
     
     @Override
@@ -96,7 +99,7 @@ public class TaskBrowserActivity extends ListActivity {
 		setContentView(NOTIFICATION_ID);
 		getListView().setEmptyView(findViewById(R.id.list_empty));
         
-        initDatabaseHelper();        
+        initDatabase();        
         initTasksList();
         initAddTaskPanel();
         refreshTaskPanelForOrientation();
@@ -250,8 +253,8 @@ public class TaskBrowserActivity extends ListActivity {
 		}
     };
 
-	private void initDatabaseHelper() {
-		taskDatabaseMap = new TaskDatabaseMap(this);
+	private void initDatabase() {
+		taskDatabaseMap = TaskDatabaseMap.getInstance(this);
 	}
 
 	private void initAddTaskPanel() {

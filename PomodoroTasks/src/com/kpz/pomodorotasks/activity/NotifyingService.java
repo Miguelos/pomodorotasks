@@ -43,7 +43,7 @@ public class NotifyingService extends Service {
     @Override
     public void onCreate() {
         notificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
-        taskDatabaseMap = new TaskDatabaseMap(this);
+        taskDatabaseMap = TaskDatabaseMap.getInstance(this);
         
         broadcastReceiver = new BroadcastReceiver() {
 			

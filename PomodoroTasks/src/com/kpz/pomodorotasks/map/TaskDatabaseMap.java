@@ -13,13 +13,9 @@ import android.preference.PreferenceManager;
 
 public class TaskDatabaseMap {
 
-	private DatabaseHelper mDbHelper;
-	private SQLiteDatabase mDb;
-
-	private static final String TAG = "PomodoroTasks";
+	private static TaskDatabaseMap mInstance = new TaskDatabaseMap();
 
 	private static final String DATABASE_NAME = "pomodorotasks";
-	
 	private static final String TASKS_TABLE = "task";
 	public static final String KEY_DESCRIPTION = "description";
 	public static final String KEY_SEQUENCE = "sequence";
@@ -81,9 +77,6 @@ public class TaskDatabaseMap {
 
 	private static final int DATABASE_VERSION = 4;
 
-	private final Context mCtx;
-	private PreferenceMap preferenceMap;
-
 	private static class DatabaseHelper extends SQLiteOpenHelper {
 
 		DatabaseHelper(Context context) {
@@ -105,38 +98,46 @@ public class TaskDatabaseMap {
 		}
 	}
 
-	/**
-	 * Constructor - takes the context to allow the database to be
-	 * opened/created
-	 * 
-	 * @param ctx
-	 *            the Context within which to work
-	 */
-	public TaskDatabaseMap(Context ctx) {
-		this.mCtx = ctx;
-		preferenceMap = new PreferenceMap(PreferenceManager.getDefaultSharedPreferences(mCtx));
-		open();
-		if (!getPreferences().legacyUpgradeComplete()){
-			upgradeLegacyData();			
+	private DatabaseHelper mDbHelper;
+	private Context mCtx;
+	private PreferenceMap preferenceMap;
+
+	private TaskDatabaseMap() {
+	}
+	
+	public static TaskDatabaseMap getInstance(Context ctx) {
+		
+		if (mInstance.mCtx == null){
+				
+			mInstance.mCtx = ctx;
+			mInstance.mDbHelper = new DatabaseHelper(mInstance.mCtx);
+			mInstance.preferenceMap = mInstance.new PreferenceMap(PreferenceManager.getDefaultSharedPreferences(mInstance.mCtx));
+			if (!mInstance.preferenceMap.legacyUpgradeComplete()){
+				mInstance.upgradeLegacyData();			
+			}
 		}
+
+		return mInstance;
 	}
 
 	private void upgradeLegacyData() {
 		
 		try{
-			Cursor cursor = mDb.query(true, "config", new String[] {"value"}, "name" + "= '" +  "CURRENT_POMODOROS" + "'", null, null, null, null, null);
+
+			SQLiteDatabase connection = mDbHelper.getReadableDatabase();
+			Cursor cursor = connection.query(true, "config", new String[] {"value"}, "name" + "= '" +  "CURRENT_POMODOROS" + "'", null, null, null, null, null);
 			if (cursor != null) {
 				cursor.moveToFirst();
 			}
 			int currentPomodoroCount = Integer.parseInt(cursor.getString(cursor.getColumnIndex("value")));
-			getPreferences().updateCurrentPomodoros(currentPomodoroCount);
+			preferenceMap.updateCurrentPomodoros(currentPomodoroCount);
 
-			cursor = mDb.query(true, "config", new String[] {"value"}, "name" + "= '" +  "TIME_DURATION" + "'", null, null, null, null, null);
+			cursor = connection.query(true, "config", new String[] {"value"}, "name" + "= '" +  "TIME_DURATION" + "'", null, null, null, null, null);
 			if (cursor != null) {
 				cursor.moveToFirst();
 			}
 			int taskDuration = Integer.parseInt(cursor.getString(cursor.getColumnIndex("value")));
-			getPreferences().updateDurationPreference(ConfigType.TASK_DURATION, taskDuration);
+			preferenceMap.updateDurationPreference(ConfigType.TASK_DURATION, taskDuration);
 
 			
 		} catch (SQLiteException ex) {
@@ -144,32 +145,19 @@ public class TaskDatabaseMap {
 			// Exception expected when its not an upgrade from previous version and the config table was not found.
 		} finally {
 			// Set one time upgrade to complete 
-			getPreferences().setLegacyUpgradeComplete(true);
+			preferenceMap.setLegacyUpgradeComplete(true);
 		}
 	}
-	
-	/**
-	 * Open the tasks database. If it cannot be opened, try to create a new
-	 * instance of the database. If it cannot be created, throw an exception to
-	 * signal the failure
-	 * 
-	 * @return this (self reference, allowing this to be chained in an
-	 *         initialization call)
-	 * @throws SQLException
-	 *             if the database could be neither opened or created
-	 */
-	private TaskDatabaseMap open() throws SQLException {
-		mDbHelper = new DatabaseHelper(mCtx);
-		mDb = mDbHelper.getWritableDatabase();
-		return this;
-	}
 
+	private SQLiteDatabase getConnection() {
+		return mDbHelper.getWritableDatabase();
+	}
+	
 	public void close() {
 		mDbHelper.close();
 	}
 	
 	public PreferenceMap getPreferences(){
-		
 		return preferenceMap;
 	}
 
@@ -177,25 +165,25 @@ public class TaskDatabaseMap {
 		ContentValues initialValues = new ContentValues();
 		initialValues.put(KEY_DESCRIPTION, description);
 
-		long taskId = mDb.insert(TASKS_TABLE, null, initialValues);
+		long taskId = getConnection().insert(TASKS_TABLE, null, initialValues);
 		ContentValues args = new ContentValues();
 		args.put(KEY_SEQUENCE, taskId);
-		mDb.update(TASKS_TABLE, args, KEY_ROWID + "=" + taskId, null);
+		getConnection().update(TASKS_TABLE, args, KEY_ROWID + "=" + taskId, null);
 
 		return taskId;
 	}
 
 	public boolean delete(long rowId) {
 
-		return mDb.delete(TASKS_TABLE, KEY_ROWID + "=" + rowId, null) > 0;
+		return getConnection().delete(TASKS_TABLE, KEY_ROWID + "=" + rowId, null) > 0;
 	}
 
 	public boolean deleteAll() {
-		return mDb.delete(TASKS_TABLE, null, null) > 0;
+		return getConnection().delete(TASKS_TABLE, null, null) > 0;
 	}
 	
 	public boolean deleteCompleted() {
-		return mDb.delete(TASKS_TABLE, KEY_STATUS + " = ? " , new String[] { StatusType.COMPLETED.getDescription() }) > 0;
+		return getConnection().delete(TASKS_TABLE, KEY_STATUS + " = ? " , new String[] { StatusType.COMPLETED.getDescription() }) > 0;
 	}
 
 	/**
@@ -205,7 +193,7 @@ public class TaskDatabaseMap {
 	 */
 	public Cursor fetchAll() {
 
-		return mDb.query(TASKS_TABLE, SELECTION_KEYS, null, null, null, null, "sequence");
+		return getConnection().query(TASKS_TABLE, SELECTION_KEYS, null, null, null, null, "sequence");
 	}
 
 	/**
@@ -219,7 +207,7 @@ public class TaskDatabaseMap {
 	 */
 	public Cursor fetch(long rowId) throws SQLException {
 
-		Cursor mCursor = mDb.query(true, TASKS_TABLE, SELECTION_KEYS, KEY_ROWID + "=" + rowId, null, null, null, null, null);
+		Cursor mCursor = getConnection().query(true, TASKS_TABLE, SELECTION_KEYS, KEY_ROWID + "=" + rowId, null, null, null, null, null);
 		if (mCursor != null) {
 			mCursor.moveToFirst();
 		}
@@ -231,7 +219,7 @@ public class TaskDatabaseMap {
 		ContentValues args = new ContentValues();
 		args.put(KEY_DESCRIPTION, description);
 
-		return mDb.update(TASKS_TABLE, args, KEY_ROWID + "=" + rowId, null) > 0;
+		return getConnection().update(TASKS_TABLE, args, KEY_ROWID + "=" + rowId, null) > 0;
 	}
 
 	public boolean updateStatus(int rowId, boolean completed) {
@@ -239,7 +227,7 @@ public class TaskDatabaseMap {
 		ContentValues args = new ContentValues();
 		args.put(KEY_STATUS, completed ? StatusType.COMPLETED.getDescription() : StatusType.OPEN.getDescription());
 
-		return mDb.update(TASKS_TABLE, args, KEY_ROWID + "=" + rowId, null) > 0;
+		return getConnection().update(TASKS_TABLE, args, KEY_ROWID + "=" + rowId, null) > 0;
 	}
 
 	public void move(int fromSeq, int toRowId, int toSeq) {
@@ -252,7 +240,7 @@ public class TaskDatabaseMap {
 
 			ContentValues args = new ContentValues();
 			args.put(KEY_SEQUENCE, toSeq);
-			mDb.update(TASKS_TABLE, args, KEY_SEQUENCE + "=" + fromSeq, null);
+			getConnection().update(TASKS_TABLE, args, KEY_SEQUENCE + "=" + fromSeq, null);
 
 			for (int i = 0; i < toSeq - fromSeq - 1; i++) {
 
@@ -260,18 +248,18 @@ public class TaskDatabaseMap {
 				int toSeq1 = fromSeq1 - 1;
 				args = new ContentValues();
 				args.put(KEY_SEQUENCE, toSeq1);
-				mDb.update(TASKS_TABLE, args, KEY_SEQUENCE + "=" + fromSeq1, null);
+				getConnection().update(TASKS_TABLE, args, KEY_SEQUENCE + "=" + fromSeq1, null);
 			}
 
 			args = new ContentValues();
 			args.put(KEY_SEQUENCE, toSeq - 1);
-			mDb.update(TASKS_TABLE, args, KEY_ROWID + "=" + toRowId, null);
+			getConnection().update(TASKS_TABLE, args, KEY_ROWID + "=" + toRowId, null);
 
 		} else {
 
 			ContentValues args = new ContentValues();
 			args.put(KEY_SEQUENCE, toSeq);
-			mDb.update(TASKS_TABLE, args, KEY_SEQUENCE + "=" + fromSeq, null);
+			getConnection().update(TASKS_TABLE, args, KEY_SEQUENCE + "=" + fromSeq, null);
 
 			for (int i = 0; i < fromSeq - toSeq - 1; i++) {
 
@@ -279,12 +267,12 @@ public class TaskDatabaseMap {
 				int toSeq1 = fromSeq - i;
 				args = new ContentValues();
 				args.put(KEY_SEQUENCE, toSeq1);
-				mDb.update(TASKS_TABLE, args, KEY_SEQUENCE + "=" + fromSeq1, null);
+				getConnection().update(TASKS_TABLE, args, KEY_SEQUENCE + "=" + fromSeq1, null);
 			}
 
 			args = new ContentValues();
 			args.put(KEY_SEQUENCE, toSeq + 1);
-			mDb.update(TASKS_TABLE, args, KEY_ROWID + "=" + toRowId, null);
+			getConnection().update(TASKS_TABLE, args, KEY_ROWID + "=" + toRowId, null);
 
 		}
 	}

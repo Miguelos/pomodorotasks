@@ -21,7 +21,7 @@ public class PreferencesActivity extends PreferenceActivity{
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
-        taskDatabaseMap = new TaskDatabaseMap(this);
+        taskDatabaseMap = TaskDatabaseMap.getInstance(this);
 		
 		addPreferencesFromResource(R.xml.preferences);
 		
@@ -63,12 +63,4 @@ public class PreferencesActivity extends PreferenceActivity{
 		Ringtone ringtone = RingtoneManager.getRingtone(this, ringtoneUri);
 		ringTonePreference.setSummary(ringtone.getTitle(this));
 	}
-	
-	@Override
-	protected void onDestroy() {
-		
-		taskDatabaseMap.close();
-		super.onDestroy();
-	}
-	
 }
