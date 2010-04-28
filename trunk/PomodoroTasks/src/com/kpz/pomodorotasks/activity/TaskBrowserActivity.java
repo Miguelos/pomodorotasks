@@ -78,7 +78,8 @@ public class TaskBrowserActivity extends ListActivity {
     	taskPanel.stopAlarm();
     	AlarmAlertWakeLock.release();
     	
-    	// Close database ONLY on application exit since the same active datasource instance is used by all activities and services. 
+    	// Close database ONLY on application exit since the same active datasource instance is used by all activities and services.
+    	taskListCursor.close();
     	taskDatabaseMap.close();
     }
     
@@ -91,8 +92,17 @@ public class TaskBrowserActivity extends ListActivity {
     @Override
     protected void onRestart() {
     	super.onRestart();
+    	
+    	// Resetting cursor to resolve intermittent issue in Nexus One phone as reported by a user, where in the list goes empty sometimes.
+    	resetTaskListCursor();
     	taskPanel.resume();
     }
+
+	private void resetTaskListCursor() {
+		stopManagingCursor(taskListCursor);
+		taskListCursor.close();
+		initTaskListCursor();
+	}
     
 	private void initView() {
 
@@ -100,7 +110,7 @@ public class TaskBrowserActivity extends ListActivity {
 		getListView().setEmptyView(findViewById(R.id.list_empty));
         
         initDatabase();        
-        initTasksList();
+        initTaskList();
         initAddTaskPanel();
         refreshTaskPanelForOrientation();
         initTrackPanel();
@@ -160,13 +170,13 @@ public class TaskBrowserActivity extends ListActivity {
 		taskPanel.startTask(taskDescription);
 	}
 	
-	private void initTasksList() {
+	private void initTaskList() {
 		
-		initTasksListViewContainer();
-        populateTasksList();
+		initTaskListView();
+        initTaskListCursor();
 	}
 	
-    private void populateTasksList() {
+    private void initTaskListCursor() {
     	
     	Cursor tasksCursor = taskDatabaseMap.fetchAll();
         startManagingCursor(tasksCursor);
@@ -204,7 +214,7 @@ public class TaskBrowserActivity extends ListActivity {
         taskListCursor = taskListCursorAdapter.getCursor();
     }
 
-	private void initTasksListViewContainer() {
+	private void initTaskListView() {
 		taskList = getListView();
         ((TouchInterceptor) taskList).setDropListener(mDropListener);
         ((TouchInterceptor) taskList).setCheckOffListener(mCheckOffListener);
@@ -523,4 +533,5 @@ public class TaskBrowserActivity extends ListActivity {
 	private ImageButton hideAddPanelButton;
 
 	private EditText addTaskInputBox;
+
 }
